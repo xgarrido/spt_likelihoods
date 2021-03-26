@@ -3,8 +3,8 @@ SPT Likelihoods
 ===============
 
 External likelihoods for SPT experiment using `cobaya
-<https://github.com/CobayaSampler/cobaya>`_. These are `python` implementation of original `Fortran`
-code for `CosmoMC` sampler.
+<https://github.com/CobayaSampler/cobaya>`_. These are ``python`` implementation of original ``Fortran``
+code for ``CosmoMC`` sampler.
 
 .. image:: https://img.shields.io/github/workflow/status/xgarrido/spt_likelihoods/Testing/master
    :target: https://github.com/xgarrido/spt_likelihoods/actions
@@ -54,8 +54,8 @@ within the ``/where/to/put/packages`` directory. For more details, you can have 
 Running/testing the code
 ------------------------
 
-You can test the ``SPT`` likelihoods by doing
+You can test the ``SPT`` likelihoods  by doing
 
 .. code:: shell
 
-    $ python -m unittest spt.tests.test_spt_likelihoods
+    $ python -m unittest spt.tests.test_sptpol
