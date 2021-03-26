@@ -1,7 +1,8 @@
-"""
-.. module:: SPTPol
+""".. module:: SPTPol
 
-:Synopsis: Definition of python-native CMB likelihood for SPTPol TE+EE
+:Synopsis: Definition of python-native CMB likelihood for SPTPol TE+EE. Adapted from Fortran
+likelihood code https://lambda.gsfc.nasa.gov/product/spt/sptpol_lh_2017_get.cfm
+
 :Author: Xavier Garrido
 
 """
