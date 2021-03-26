@@ -130,26 +130,16 @@ class SPTPolPrototype(InstallableLikelihood):
         return {"Cl": {cl: self.lmax for cl in self.use_cl}}
 
     def get_foregrounds(self, dlte, dlee, **params_values):
-        lmin, lmax = self.lmin, self.lmax
-
-        # Calculate derivatives for this position in parameter space.
-        # kappa parameter as described in Manzotti, et al. 2014, equation (32).
-        dlte = dlte[lmin - 1 : lmax + 1]
-        dlee = dlee[lmin - 1 : lmax + 1]
-        delta_dlte = 0.5 * self.rawspec_factor * (dlte[2:] - dlte[:-2]) / self.ells
-        delta_dlee = 0.5 * self.rawspec_factor * (dlee[2:] - dlee[:-2]) / self.ells
-
         # First get model foreground spectrum (in Cl).
         # Note all the foregrounds are recorded in Dl at l=3000, so we
         # divide by d3000 to get to a normalized Cl spectrum.
         #
-        # Start with Poisson power and subtract the kappa parameter for super sample lensing.
+        # Start with Poisson power
         d3000 = 3000 * 3001 / (2 * np.pi)
         poisson_level_TE = params_values.get("czero_psTE_150") / d3000
         poisson_level_EE = params_values.get("czero_psEE_150") / d3000
-        kappa = params_values.get("kappa")
-        dlte_fg = (poisson_level_TE - kappa * delta_dlte) * self.cl_to_dl_conversion
-        dlee_fg = (poisson_level_EE - kappa * delta_dlee) * self.cl_to_dl_conversion
+        dlte_fg = poisson_level_TE * self.cl_to_dl_conversion
+        dlee_fg = poisson_level_EE * self.cl_to_dl_conversion
 
         # Add dust foreground model (defined in Dl)
         ADust_TE = params_values.get("ADust_TE")
@@ -170,13 +160,26 @@ class SPTPolPrototype(InstallableLikelihood):
         dlte_cmb = dlte[lmin:lmax]
         dlee_cmb = dlee[lmin:lmax]
 
+        # Calculate derivatives for this position in parameter space.
+        dlte = dlte[lmin - 1 : lmax + 1]
+        dlee = dlee[lmin - 1 : lmax + 1]
+        deriv_dlte = (dlte[2:] - dlte[:-2]) / 2
+        deriv_dlee = (dlee[2:] - dlee[:-2]) / 2
+
+        # Subtract the kappa parameter for super sample lensing.
+        # kappa parameter as described in Manzotti, et al. 2014, equation (32).
+        delta_dlte = self.rawspec_factor * deriv_dlte / self.ells
+        delta_dlee = self.rawspec_factor * deriv_dlee / self.ells
+        kappa = params_values.get("kappa")
+        dlte_cmb -= kappa * delta_dlte * self.cl_to_dl_conversion
+        dlte_cmb -= kappa * delta_dlee * self.cl_to_dl_conversion
+
+        # Correct for aberration
         if self.correct_aberration:
             beta = 0.0012309
             dipole_cosine = -0.4033
-            dlte = dlte[lmin - 1 : lmax + 1]
-            dlee = dlee[lmin - 1 : lmax + 1]
-            dlte_cmb += -beta * dipole_cosine * self.ells * 0.5 * (dlte[2:] - dlte[:-2])
-            dlee_cmb += -beta * dipole_cosine * self.ells * 0.5 * (dlee[2:] - dlee[:-2])
+            dlte_cmb += -beta * dipole_cosine * self.ells * deriv_dlte
+            dlee_cmb += -beta * dipole_cosine * self.ells * deriv_dlee
 
         # Now bin into bandpowers with the window functions.
         win_te, win_ee = self.windows[: self.nbin], self.windows[self.nbin :]
