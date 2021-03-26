@@ -120,7 +120,8 @@ class SPTPolPrototype(InstallableLikelihood):
         self.lmax = self.windows_lmax + 1  # to match fortran convention
         self.ells = np.arange(self.lmin, self.lmax)
         self.cl_to_dl_conversion = (self.ells * (self.ells + 1)) / (2 * np.pi)
-        self.rawspec_factor = self.ells ** 2 / self.cl_to_dl_conversion
+        ells = np.arange(self.lmin - 1, self.lmax + 1)
+        self.rawspec_factor = ells ** 2 / (ells * (ells + 1)) * 2 * np.pi
 
         for var in ["nbin", "nfreq", "nall", "windows_lmin", "windows_lmax", "data_folder", "lmax"]:
             self.log.debug(f"{var} = {getattr(self, var)}")
@@ -163,23 +164,23 @@ class SPTPolPrototype(InstallableLikelihood):
         # Calculate derivatives for this position in parameter space.
         dlte = dlte[lmin - 1 : lmax + 1]
         dlee = dlee[lmin - 1 : lmax + 1]
-        deriv_dlte = (dlte[2:] - dlte[:-2]) / 2
-        deriv_dlee = (dlee[2:] - dlee[:-2]) / 2
+        rs_te = self.rawspec_factor * dlte
+        rs_ee = self.rawspec_factor * dlee
+        deriv_te = 0.5 * (rs_te[2:] - rs_te[:-2])
+        deriv_ee = 0.5 * (rs_ee[2:] - rs_ee[:-2])
 
         # Subtract the kappa parameter for super sample lensing.
         # kappa parameter as described in Manzotti, et al. 2014, equation (32).
-        delta_dlte = self.rawspec_factor * deriv_dlte / self.ells
-        delta_dlee = self.rawspec_factor * deriv_dlee / self.ells
         kappa = params_values.get("kappa")
-        dlte_cmb -= kappa * delta_dlte * self.cl_to_dl_conversion
-        dlte_cmb -= kappa * delta_dlee * self.cl_to_dl_conversion
+        dlte_cmb -= kappa * deriv_te * self.cl_to_dl_conversion / self.ells
+        dlte_cmb -= kappa * deriv_ee * self.cl_to_dl_conversion / self.ells
 
         # Correct for aberration
         if self.correct_aberration:
             beta = 0.0012309
             dipole_cosine = -0.4033
-            dlte_cmb += -beta * dipole_cosine * self.ells * deriv_dlte
-            dlee_cmb += -beta * dipole_cosine * self.ells * deriv_dlee
+            dlte_cmb -= beta * dipole_cosine * self.ells * 0.5 * (dlte[2:] - dlte[:-2])
+            dlee_cmb -= beta * dipole_cosine * self.ells * 0.5 * (dlee[2:] - dlee[:-2])
 
         # Now bin into bandpowers with the window functions.
         win_te, win_ee = self.windows[: self.nbin], self.windows[self.nbin :]
