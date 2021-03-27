@@ -1,0 +1,99 @@
+path: null
+
+# Bandpower file
+bp_file: sptpol_500d_TTTEEE.bp_file
+
+# Covariance file (TE, EE)
+cov_file: sptpol_500d_TEEE_cov.bin
+
+# Windows directory
+window_dir: bpwfs_ascii
+
+# Beam error file
+beam_file: sptpol_500d_TEEE_beamerrs.txt
+
+# Flag for correcting aberration due to relative motion wrt CMB dipole
+correct_aberration: true
+
+params:
+  # Foregrounds
+  kappa:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.001
+    proposal: 0.002
+    latex: \kappa
+
+  czero_psTE_150:
+    value: 0.0
+    latex: D_{3000}^{\rm{PS_{TE}}}
+
+  czero_psEE_150:
+    prior:
+      min: 0.0
+      max: 2.5
+    proposal: 0.01
+    latex: D_{3000}^{\rm{PS_{EE}}}
+
+  ADust_TE:
+    prior:
+      min: 0.0
+      max: 2.0
+    proposal: 0.01
+    latex: A_{\rm{dust}}^{TE}
+
+  ADust_EE:
+    prior:
+      min: 0.0
+      max: 2.0
+    proposal: 0.001
+    latex: A_{\rm{dust}}^{EE}
+
+  alphaDust_TE:
+    prior:
+      dist: norm
+      loc: -2.42
+      scale: 0.02
+    proposal: 0.01
+    latex: \alpha_{\rm{dust}}^{TE}
+
+  alphaDust_EE:
+    prior:
+      dist: norm
+      loc: -2.42
+      scale: 0.02
+    proposal: 0.01
+    latex: \alpha_{\rm{dust}}^{EE}
+
+  mapTcal:
+    prior:
+      dist: norm
+      loc: 1.0
+      scale: 0.0034
+    proposal: 0.01
+    latex: T_{\rm{cal}}
+
+  mapPcal:
+    prior:
+      dist: norm
+      loc: 1.0
+      scale: 0.01
+    proposal: 0.01
+    latex: P_{\rm{cal}}
+
+  beam1:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 1.0
+    proposal: 1.0
+    latex: A_{\rm{beam1}}
+
+  beam2:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 1.0
+    proposal: 1.0
+    latex: A_{\rm{beam2}}
