@@ -173,15 +173,15 @@ class SPTPolPrototype(InstallableLikelihood):
         # Subtract the kappa parameter for super sample lensing.
         # kappa parameter as described in Manzotti, et al. 2014, equation (32).
         kappa = params_values.get("kappa")
-        dlte_cmb -= kappa * deriv_te * self.cl_to_dl_conversion / self.ells
-        dlte_cmb -= kappa * deriv_ee * self.cl_to_dl_conversion / self.ells
+        dlte_fg -= kappa * deriv_te * self.cl_to_dl_conversion / self.ells
+        dlee_fg -= kappa * deriv_ee * self.cl_to_dl_conversion / self.ells
 
         # Correct for aberration
         if self.correct_aberration:
             beta = 0.0012309
             dipole_cosine = -0.4033
-            dlte_cmb -= beta * dipole_cosine * self.ells * 0.5 * (dlte[2:] - dlte[:-2])
-            dlee_cmb -= beta * dipole_cosine * self.ells * 0.5 * (dlee[2:] - dlee[:-2])
+            dlte_fg -= beta * dipole_cosine * self.ells * 0.5 * (dlte[2:] - dlte[:-2])
+            dlee_fg -= beta * dipole_cosine * self.ells * 0.5 * (dlee[2:] - dlee[:-2])
 
         # Now bin into bandpowers with the window functions.
         win_te, win_ee = self.windows[: self.nbin], self.windows[self.nbin :]
