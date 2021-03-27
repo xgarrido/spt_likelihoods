@@ -1,1 +1,0 @@
-from .SPTPol import SPTPol

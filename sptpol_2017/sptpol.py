@@ -23,11 +23,12 @@ class SPTPolPrototype(InstallableLikelihood):
         "data_path": "sptpol_2017",
     }
 
+    bibtex_file = "sptpol.bibtex"
+
     nbin: Optional[int] = 56
     nfreq: Optional[int] = 1
     windows_lmin: Optional[int] = 3
     windows_lmax: Optional[int] = 10600
-    use_cl: Sequence[str] = ["te", "ee"]
     correct_aberration: Optional[bool] = True
 
     data_folder: Optional[str] = "sptpol_2017/SPTpol_Likelihood_1p3/data/sptpol_500d_TEEE"
@@ -55,6 +56,10 @@ class SPTPolPrototype(InstallableLikelihood):
                 self.log,
                 f"The 'data_folder' directory does not exist. Check the given path [self.data_folder].",
             )
+
+        # Get likelihood name and add the associated mode
+        lkl_name = self.__class__.__name__.lower()
+        self.use_cl = [lkl_name[i : i + 2] for i in range(0, len(lkl_name), 2)]
 
         if self.nfreq != 1:
             raise LoggedError(self.log, "Sorry, current code wont work for multiple freqs")
@@ -212,8 +217,22 @@ class SPTPolPrototype(InstallableLikelihood):
         return self.loglike(Cls.get("te"), Cls.get("ee"), **data_params)
 
 
-class SPTPol(SPTPolPrototype):
+class TEEE(SPTPolPrototype):
     r"""
     SPTpol 2017 500d EETE power spectrum 50 < ell < 8000 (Henning et al 2017)
+    """
+    pass
+
+
+class TE(SPTPolPrototype):
+    r"""
+    SPTpol 2017 500d TE power spectrum 50 < ell < 8000 (Henning et al 2017)
+    """
+    pass
+
+
+class EE(SPTPolPrototype):
+    r"""
+    SPTpol 2017 500d EE power spectrum 50 < ell < 8000 (Henning et al 2017)
     """
     pass

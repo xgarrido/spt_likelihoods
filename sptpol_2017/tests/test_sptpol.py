@@ -37,7 +37,7 @@ class SPTPolTest(unittest.TestCase):
     def setUp(self):
         from cobaya.install import install
 
-        install({"likelihood": {"spt.SPTPol": None}}, path=packages_path)
+        install({"likelihood": {"sptpol_2017.TEEE": None}}, path=packages_path)
 
     def test_cobaya(self):
         """Test the Cobaya interface to the SPTPol likelihood."""
@@ -45,18 +45,18 @@ class SPTPolTest(unittest.TestCase):
 
         info = {
             "debug": True,
-            "likelihood": {"spt.SPTPol": None},
             "theory": {"camb": {"extra_args": {"lens_potential_accuracy": 1}}},
             "params": {**cosmo_params, **fg_params},
             "modules": packages_path,
         }
 
         for use_cl, expected_chi2 in {
-            ("te", "ee"): 162.98103875445057,
-            ("te",): 74.72963434194682,
-            ("ee",): 76.80106189735758,
+            "teee": 162.98103875445057,
+            "te": 74.72963434194682,
+            "ee": 76.80106189735758,
         }.items():
-            info["likelihood"]["spt.SPTPol"] = dict(use_cl=list(use_cl))
+            print("use_cl", use_cl)
+            info["likelihood"] = {f"sptpol_2017.{use_cl.upper()}": None}
             model = get_model(info)
             chi2 = -2 * model.loglike({})[0]
             self.assertAlmostEqual(chi2, expected_chi2, 3)
