@@ -31,7 +31,7 @@ class SPTHiellLikelihood(InstallableLikelihood):
         [1.1602891e-06, 2.1348018e-06, 1.7536000e-05],
     ]
 
-    freq: Sequence[int] = [95, 150, 220]
+    frequencies: Sequence[int] = [95, 150, 220]
 
     data_folder: Optional[str] = "spt_hiell_2020/likelihood"
     desc_file: Optional[str]
@@ -40,20 +40,11 @@ class SPTHiellLikelihood(InstallableLikelihood):
     beamerr_file: Optional[str]
     window_file: Optional[str]
 
-    normalizeSZ_143GHz = True
-    callFGprior = True
-    applyFTSprior = True
-    use_dZ = False
+    normalizeSZ_143GHz: Optional[bool] = True
+    callFGprior: Optional[bool] = True
+    applyFTSprior: Optional[bool] = True
 
-    foregrounds = dict(
-        spt_dataset_tSZ="ptsrc/dl_shaw_tsz_s10_153ghz_norm1_fake25000.txt",
-        spt_dataset_kSZ="ptsrc/dl_ksz_CSFplusPATCHY_13sep2011_norm1_fake25000.txt",
-        spt_dataset_kSZ2="ptsrc/dl_ksz_oz_patchy_nolowell_20110708_norm1_fake25000.txt",
-        spt_dataset_clustered="ptsrc/dl_cib_1halo_norm1_25000.txt",
-        spt_dataset_clustered2="ptsrc/dl_cib_2halo_norm1_25000.txt",
-    )
-
-    def initialize(self, verbose=True):
+    def initialize(self):
         # Set path to data
         if (not getattr(self, "path", None)) and (not getattr(self, _packages_path, None)):
             raise LoggedError(
@@ -85,18 +76,18 @@ class SPTHiellLikelihood(InstallableLikelihood):
         # get info from the desc_file
         self._update_with_desc_file()
 
-        if verbose:
-            print("nall: {}".format(self.nall))
-            print("nfreq: {}".format(self.nfreq))
-            print("spt_windows_lmin: {}".format(self.spt_windows_lmin))
-            print("spt_windows_lmax: {}".format(self.spt_windows_lmax))
+        self.log.debug(f"nall: {self.nall}")
+        self.log.debug(f"nfreq: {self.nfreq}")
+        self.log.debug(f"spt_windows_lmin: {self.spt_windows_lmin}")
+        self.log.debug(f"spt_windows_lmax: {self.spt_windows_lmax}")
+
         self.lmax = self.spt_windows_lmax
 
         if self.spt_windows_lmax > self.fg.ReportFGLmax():
-            raise ValueError("Hard-wired lmax in foregrounds is too low for SPT_hiell")
+            raise LoggedError(self.log, "Hard-wired lmax in foregrounds is too low for SPT_hiell")
 
         if self.spt_windows_lmin < 2 or self.spt_windows_lmin >= self.spt_windows_lmax:
-            raise ValueError("Invalid lranges for sptpol")
+            raise LoggedError(self.log, "Invalid lranges for sptpol")
 
         # ells vector is 2 ell longer in order to do cl derivatives.
         self.ells = np.arange(self.spt_windows_lmin, self.spt_windows_lmax)
@@ -110,19 +101,15 @@ class SPTHiellLikelihood(InstallableLikelihood):
 
         # read covariance
         # check file before
-        self.cov = np.fromfile(os.path.join(self.data_folder, self.cov_file), np.float64).reshape(
-            self.nall, self.nall
-        )
-        #        if verbose:
-        #            print( self.cov)
+        self.cov = np.fromfile(
+            os.path.join(self.data_folder, self.cov_file), dtype=np.float64
+        ).reshape(self.nall, self.nall)
 
         # read beam_err
         # check file before
         self.beam_err = np.fromfile(
-            os.path.join(self.data_folder, self.beamerr_file), np.float64
+            os.path.join(self.data_folder, self.beamerr_file), dtype=np.float64
         ).reshape(self.nall, self.nall)
-        #        if verbose:
-        #            print( self.beam_err)
 
         # Read windows
         # check file before
@@ -140,10 +127,7 @@ class SPTHiellLikelihood(InstallableLikelihood):
         for i in range(1, self.nband):
             self.offsets.append(self.offsets[i - 1] + self.nbins[i - 1])
 
-        self.Successful_SPT_Init = True
-
-        if verbose:
-            print("Init SPTlik done")
+        self.log.info("Init SPTlik done")
 
     def _read_windows(self, filename):
         import struct
@@ -152,7 +136,7 @@ class SPTHiellLikelihood(InstallableLikelihood):
             efflmin, efflmax = struct.unpack("@II", f.read(2 * np.dtype(np.int32).itemsize))
 
         if efflmax < self.spt_windows_lmin or efflmin > self.spt_windows_lmax:
-            raise ValueError("unallowed l-ranges for binary window functions")
+            raise LoggedError(self.log, "unallowed l-ranges for binary window functions")
 
         #        j0 = self.spt_windows_lmin if self.spt_windows_lmin > efflmin else efflmin
         #        j1 = self.spt_windows_lmax if self.spt_windows_lmax < efflmax else efflmax
@@ -182,15 +166,15 @@ class SPTHiellLikelihood(InstallableLikelihood):
 
             self.nbins = [int(next(f)) for i in range(self.nband)]
             if self.nall != sum(self.nbins):
-                raise ValueError("mismatched number of bandpowers")
+                raise LoggedError(self.log, "Mismatched number of bandpowers")
 
             self.spt_norm_fr = [float(next(f)) for i in range(5)]
 
             if self.normalizeSZ_143GHz:
+                self.log.debug("Using 143 as tSZ center freq")
                 self.spt_norm_fr[4] = 143.0
-                print("Using 143 as tSZ center freq")
 
-            self.spt_windows_lmin, self.spt_windows_lmax = [int(float(x)) for x in next(f).split()]
+            self.spt_windows_lmin, self.spt_windows_lmax = [int(x) for x in next(f).split()]
 
             eff_fr = []
             for j in range(self.nfreq):
@@ -226,7 +210,7 @@ class SPTHiellLikelihood(InstallableLikelihood):
         """
         dl_cmb: Dl TT
         """
-        CalFactors = [params["mapCal{}".format(nu)] for nu in self.freq]
+        CalFactors = [params["mapCal{}".format(nu)] for nu in self.frequencies]
         FTSfactor = params["FTS_calibration_error"]
 
         # scaling theory
