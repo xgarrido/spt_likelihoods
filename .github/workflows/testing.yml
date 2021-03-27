@@ -35,3 +35,4 @@ jobs:
       run: |
         pip install camb
         python -m unittest sptpol_2017.tests.test_sptpol
+        python -m unittest spt_hiell_2020.tests.test_spt_hiell
