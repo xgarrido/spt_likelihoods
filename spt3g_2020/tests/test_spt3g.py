@@ -18,19 +18,25 @@ cosmo_params = dict(
     tau=0.09,
 )
 
-# fg_params = dict(
-#     kappa=0.0,
-#     czero_psTE_150=0.0,
-#     czero_psEE_150=0.0837416,
-#     ADust_TE=0.1647,
-#     ADust_EE=0.0236,
-#     alphaDust_TE=-2.42,
-#     alphaDust_EE=-2.42,
-#     mapTcal=1.0,
-#     mapPcal=1.0,
-#     beam1=0.0,
-#     beam2=0.0,
-# )
+fg_params = dict(
+    kappa=0.0,
+    Dl_Poisson_90x90=0.1,
+    Dl_Poisson_90x150=0.1,
+    Dl_Poisson_90x220=0.1,
+    Dl_Poisson_150x150=0.1,
+    Dl_Poisson_150x220=0.1,
+    Dl_Poisson_220x220=0.1,
+    ADust_TE_150=0.1647,
+    ADust_EE_150=0.0236,
+    AlphaDust_TE=-2.42,
+    AlphaDust_EE=-2.42,
+    mapTcal90=1.0,
+    mapTcal150=1.0,
+    mapTcal220=1.0,
+    mapPcal90=1.0,
+    mapPcal150=1.0,
+    mapPcal220=1.0,
+)
 
 
 class SPT3GTest(unittest.TestCase):
@@ -47,7 +53,7 @@ class SPT3GTest(unittest.TestCase):
             "debug": True,
             "likelihood": {"spt3g_2020.TEEE": None},
             "theory": {"camb": {"extra_args": {"lens_potential_accuracy": 1}}},
-            "params": {**cosmo_params},  # , **fg_params},
+            "params": {**cosmo_params, **fg_params},
             "modules": packages_path,
         }
 

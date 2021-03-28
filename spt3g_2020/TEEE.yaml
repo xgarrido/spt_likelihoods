@@ -1,56 +1,102 @@
 path: null
 
 # Bandpower file
-bp_file: sptpol_500d_TTTEEE.bp_file
+bp_file: SPT3G_Y1_EETE_bandpowers.dat
 
-# Covariance file (TE, EE)
-cov_file: sptpol_500d_TEEE_cov.bin
+# Covariance file
+cov_file: SPT3G_Y1_EETE_covariance.dat
+
+# Beam covariance file
+beam_cov_file: SPT3G_Y1_EETE_beam_covariance.dat
+
+# Calibration (mapT, mapP) covariance
+calib_cov_file: SPT3G_Y1_EETE_cal_covariance.dat
 
 # Windows directory
-window_dir: bpwfs_ascii
+window_dir: windows
 
-# Beam error file
-beam_file: sptpol_500d_TEEE_beamerrs.txt
-
-# Flag for correcting aberration due to relative motion wrt CMB dipole
-correct_aberration: true
+# Spectra to use (order does not matter)
+spectra_to_fit:
+  - 90_Ex90_E
+  - 90_Tx90_E
+  - 90_Ex150_E
+  - 90_Tx150_E
+  - 90_Ex220_E
+  - 90_Tx220_E
+  - 150_Ex150_E
+  - 150_Tx150_E
+  - 150_Ex220_E
+  - 150_Tx220_E
+  - 220_Ex220_E
+  - 220_Tx220_E
 
 params:
-  # Foregrounds
   kappa:
     prior:
       dist: norm
       loc: 0.0
-      scale: 0.001
-    proposal: 0.002
+      scale: 0.00045
+    proposal: 0.00045
     latex: \kappa
 
-  czero_psTE_150:
-    value: 0.0
-    latex: D_{3000}^{\rm{PS_{TE}}}
-
-  czero_psEE_150:
+  Dl_Poisson_90x90:
     prior:
       min: 0.0
-      max: 2.5
+      max: 5.0
     proposal: 0.01
-    latex: D_{3000}^{\rm{PS_{EE}}}
+    latex: D_{3000}^{\rm{PS};90x90}
 
-  ADust_TE:
+  Dl_Poisson_90x150:
+    prior:
+      min: 0.0
+      max: 5.0
+    proposal: 0.01
+    latex: D_{3000}^{\rm{PS};90x150}
+
+  Dl_Poisson_90x220:
+    prior:
+      min: 0.0
+      max: 5.0
+    proposal: 0.01
+    latex: D_{3000}^{\rm{PS};90x220}
+
+  Dl_Poisson_150x150:
+    prior:
+      min: 0.0
+      max: 5.0
+    proposal: 0.01
+    latex: D_{3000}^{\rm{PS};150x150}
+
+  Dl_Poisson_150x220:
+    prior:
+      min: 0.0
+      max: 5.0
+    proposal: 0.01
+    latex: D_{3000}^{\rm{PS};150x220}
+
+  Dl_Poisson_220x220:
+    prior:
+      min: 0.0
+      max: 5.0
+    proposal: 0.01
+    latex: D_{3000}^{\rm{PS};220x220}
+
+  TDust:
+    value: 19.6
+    latex: T_{\rm{dust}}
+
+  ADust_TE_150:
     prior:
       min: 0.0
       max: 2.0
     proposal: 0.01
     latex: A_{\rm{dust}}^{TE}
 
-  ADust_EE:
-    prior:
-      min: 0.0
-      max: 2.0
-    proposal: 0.001
-    latex: A_{\rm{dust}}^{EE}
+  BetaDust_TE:
+    value: 1.59
+    latex: \beta_{\rm{dust}}^{TE}
 
-  alphaDust_TE:
+  AlphaDust_TE:
     prior:
       dist: norm
       loc: -2.42
@@ -58,7 +104,18 @@ params:
     proposal: 0.01
     latex: \alpha_{\rm{dust}}^{TE}
 
-  alphaDust_EE:
+  ADust_EE_150:
+    prior:
+      min: 0.0
+      max: 2.0
+    proposal: 0.001
+    latex: A_{\rm{dust}}^{EE}
+
+  BetaDust_EE:
+    value: 1.59
+    latex: \beta_{\rm{dust}}^{EE}
+
+  AlphaDust_EE:
     prior:
       dist: norm
       loc: -2.42
@@ -66,34 +123,44 @@ params:
     proposal: 0.01
     latex: \alpha_{\rm{dust}}^{EE}
 
-  mapTcal:
+  mapTcal90:
     prior:
-      dist: norm
-      loc: 1.0
-      scale: 0.0034
+      min: 0.85
+      max: 1.15
     proposal: 0.01
-    latex: T_{\rm{cal}}
+    latex: T_{\rm{cal}^{90}}
 
-  mapPcal:
+  mapTcal150:
     prior:
-      dist: norm
-      loc: 1.0
-      scale: 0.01
+      min: 0.85
+      max: 1.15
     proposal: 0.01
-    latex: P_{\rm{cal}}
+    latex: T_{\rm{cal}^{150}}
 
-  beam1:
+  mapTcal220:
     prior:
-      dist: norm
-      loc: 0.0
-      scale: 1.0
-    proposal: 1.0
-    latex: A_{\rm{beam1}}
+      min: 0.85
+      max: 1.15
+    proposal: 0.01
+    latex: T_{\rm{cal}^{220}}
 
-  beam2:
+  mapPcal90:
     prior:
-      dist: norm
-      loc: 0.0
-      scale: 1.0
-    proposal: 1.0
-    latex: A_{\rm{beam2}}
+      min: 0.85
+      max: 1.15
+    proposal: 0.01
+    latex: P_{\rm{cal}^{90}}
+
+  mapPcal150:
+    prior:
+      min: 0.85
+      max: 1.15
+    proposal: 0.01
+    latex: P_{\rm{cal}^{150}}
+
+  mapPcal220:
+    prior:
+      min: 0.85
+      max: 1.15
+    proposal: 0.01
+    latex: P_{\rm{cal}^{220}}

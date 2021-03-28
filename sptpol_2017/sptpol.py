@@ -54,7 +54,7 @@ class SPTPolPrototype(InstallableLikelihood):
         if not os.path.exists(self.data_folder):
             raise LoggedError(
                 self.log,
-                f"The 'data_folder' directory does not exist. Check the given path [self.data_folder].",
+                f"The 'data_folder' directory does not exist. Check the given path [{self.data_folder}].",
             )
 
         # Get likelihood name and add the associated mode
