@@ -105,10 +105,6 @@ class SPT3GPrototype(InstallableLikelihood):
         # self.nband = bands_per_freq * self.nfreq
         # self.nall = self.nbin * self.nfreq * (bands_per_freq - 1)  # Cov doesn't know about TT.
 
-        # Compute spectra/cov indices given spectra to fit
-        self.indices = np.array([default_spectra_list.index(spec) for spec in self.spectra_to_fit])
-        self.log.debug(f"Selected indices: {self.indices}")
-
         # Read in bandpowers (remove index column)
         self.bandpowers = np.loadtxt(os.path.join(self.data_folder, self.bp_file), unpack=True)[1:]
 
@@ -133,11 +129,19 @@ class SPT3GPrototype(InstallableLikelihood):
             ]
         )
 
+        # Compute spectra/cov indices given spectra to fit
+        vec_indices = np.array([default_spectra_list.index(spec) for spec in self.spectra_to_fit])
+        self.bandpowers = self.bandpowers[vec_indices].flatten()
+        self.windows = self.windows[:, vec_indices, :]
+        cov_indices = np.array(
+            [np.arange(i * self.nbins, (i + 1) * self.nbins) for i in vec_indices]
+        )
+        cov_indices = cov_indices.flatten()
         # Select spectra/cov elements given indices
-        self.bandpowers = self.bandpowers[self.indices]
-        self.cov = self.cov[self.indices[:, None], self.indices]
-        self.beam_cov = self.beam_cov[self.indices[:, None], self.indices] * self.beam_cov_scaling
-        self.windows = self.windows[:, self.indices, :]
+        self.cov = self.cov[np.ix_(cov_indices)]
+        self.beam_cov = self.beam_cov[np.ix_(cov_indices)] * self.beam_cov_scaling
+        self.log.debug(f"Selected bp indices: {vec_indices}")
+        self.log.debug(f"Selected cov indices: {cov_indices}")
 
         # Compute cross-spectra frequencies and mode given the spectra name to fit
         r = re.compile("(.+?)_(.)x(.+?)_(.)")
@@ -171,38 +175,124 @@ class SPT3GPrototype(InstallableLikelihood):
         # State requisites to the theory code
         return {"Cl": {cl: self.lmax for cl in self.use_cl}}
 
-    # def get_foregrounds(self, dlte, dlee, **params_values):
-    #     # First get model foreground spectrum (in Cl).
-    #     # Note all the foregrounds are recorded in Dl at l=3000, so we
-    #     # divide by d3000 to get to a normalized Cl spectrum.
-    #     #
-    #     # Start with Poisson power
-    #     d3000 = 3000 * 3001 / (2 * np.pi)
-    #     poisson_level_TE = params_values.get("czero_psTE_150") / d3000
-    #     poisson_level_EE = params_values.get("czero_psEE_150") / d3000
-    #     dlte_fg = poisson_level_TE * self.cl_to_dl_conversion
-    #     dlee_fg = poisson_level_EE * self.cl_to_dl_conversion
-
-    #     # Add dust foreground model (defined in Dl)
-    #     ADust_TE = params_values.get("ADust_TE")
-    #     ADust_EE = params_values.get("ADust_EE")
-    #     alphaDust_TE = params_values.get("alphaDust_TE")
-    #     alphaDust_EE = params_values.get("alphaDust_EE")
-    #     dlte_fg += ADust_TE * (self.ells / 80) ** (alphaDust_TE + 2)
-    #     dlee_fg += ADust_EE * (self.ells / 80) ** (alphaDust_EE + 2)
-
-    #     return dlte_fg, dlee_fg
-
     def loglike(self, dlte, dlee, **params_values):
 
-        for cross_spectrum, cross_frequency in zip(self.cross_spectra, self.cross_frequencies):
-            freq1, freq2 = cross_frequency
-            print(cross_spectrum, freq1, freq2)
+        T_CMB = 2.72548  # CMB temperature
+        h = 6.62606957e-34  # Planck's constant
+        kB = 1.3806488e-23  # Boltzmann constant
+        Ghz_Kelvin = h / kB * 1e9
 
-        # chi2 = delta_cb @ self.invcov @ delta_cb
-        chi2 = 0.0
-        # self.log.debug(f"SPTPol X²/ndof = {chi2:.2f}/{self.nall}")
-        return -0.5 * chi2  # + self.logp_const
+        # Planck function normalised to 1 at nu0
+        def Bnu(nu, nu0, T):
+            return (
+                (nu / nu0) ** 3
+                * (np.exp(Ghz_Kelvin * nu0 / T) - 1)
+                / (np.exp(Ghz_Kelvin * nu / T) - 1)
+            )
+
+        # Derivative of Planck function normalised to 1 at nu0
+        def dBdT(nu, nu0, T):
+            x0 = Ghz_Kelvin * nu0 / T
+            x = Ghz_Kelvin * nu / T
+
+            dBdT0 = x0 ** 4 * np.exp(x0) / (np.exp(x0) - 1) ** 2
+            dBdT = x ** 4 * np.exp(x) / (np.exp(x) - 1) ** 2
+
+            return dBdT / dBdT0
+
+        lmin, lmax = self.lmin, self.lmax
+        ells = np.arange(lmin, lmax + 2)
+
+        dbs = np.empty_like(self.bandpowers)
+        for i, (cross_spectrum, cross_frequency) in enumerate(
+            zip(self.cross_spectra, self.cross_frequencies)
+        ):
+            dl_cmb = dlee if cross_spectrum == "EE" else dlte
+
+            # Calculate derivatives for this position in parameter space.
+            cl_derivative = dl_cmb[ells] * 2 * np.pi / (ells * (ells + 1))
+            cl_derivative = 0.5 * (cl_derivative[2:] - cl_derivative[:-2])
+
+            # Add CMB
+            dls = dl_cmb[self.ells]
+
+            # Add super sample lensing
+            # (In Cl space) SSL = -k/l^2 d/dln(l) (l^2Cl) = -k(l*dCl/dl + 2Cl)
+            if self.super_sample_lensing:
+                kappa = params_values.get("kappa")
+                dls += -kappa * (
+                    self.ells ** 2 * (self.ells + 1) / (2 * np.pi) * cl_derivative
+                    + 2 * dl_cmb[self.ells]
+                )
+
+            # Aberration correction
+            # AC = beta*l(l+1)dCl/dln(l)/(2pi)
+            # Note that the CosmoMC internal aberration correction and the SPTpol Henning likelihood differ
+            # CosmoMC uses dCl/dl, Henning et al dDl/dl
+            # In fact, CosmoMC is correct:
+            # https://journals-aps-org.eu1.proxy.openathens.net/prd/pdf/10.1103/PhysRevD.89.023003
+            dls += (
+                -self.aberration_coefficient
+                * cl_derivative
+                * self.ells ** 2
+                * (self.ells + 1)
+                / (2 * np.pi)
+            )
+
+            # Simple poisson foregrounds
+            # This is any poisson power. Meant to describe both radio galaxies and DSFG. By giving each frequency combination an amplitude
+            # to play with this gives complete freedom to the data
+            if self.poisson_switch and cross_spectrum == "EE":
+                Dl_poisson = params_values.get("Dl_Poisson_{}x{}".format(*cross_frequency))
+                dls += self.ells * (self.ells + 1) * Dl_poisson / (3000 * 3001)
+
+            # Polarised galactic dust
+            if self.dust_switch:
+                TDust = params_values.get("TDust")
+                ADust = params_values.get(f"ADust_{cross_spectrum}_150")
+                AlphaDust = params_values.get(f"AlphaDust_{cross_spectrum}")
+                BetaDust = params_values.get(f"BetaDust_{cross_spectrum}")
+                dfs = (
+                    lambda beta, temp, nu0, nu: (nu / nu0) ** beta
+                    * Bnu(nu, nu0, temp)
+                    / dBdT(nu, nu0, T_CMB)
+                )
+                dust = ADust * (self.ells / 80) ** (AlphaDust + 2)
+                for freq in cross_frequency:
+                    dust *= dfs(BetaDust, TDust, 150, self.nu_eff_list.get(int(freq)))
+                dls += dust
+
+            # Scale by calibration
+            if cross_spectrum == "EE":
+                # Calibration for EE: 1/(Ecal_1*Ecal_2) since we matched the EE spectrum to Planck's
+                calibration = 1.0
+                for freq in cross_frequency:
+                    calibration /= params_values.get(f"mapPcal{freq}")
+            if cross_spectrum == "TE":
+                # Calibration for TE: 0.5*(1/(Tcal_1*Ecal_2) + 1/(Tcal_2*Ecal_1))
+                freq1, freq2 = cross_frequency
+                calibration = 0.5 * (
+                    1
+                    / (params_values.get(f"mapTcal{freq1}") * params_values.get(f"mapPcal{freq2}"))
+                    + 1
+                    / (params_values.get(f"mapTcal{freq2}") * params_values.get(f"mapPcal{freq1}"))
+                )
+            dls *= calibration
+
+            # Binning via window and concatenate
+            dbs[i * self.nbins : (i + 1) * self.nbins] = self.windows[:, i, :] @ dls
+
+        # Take the difference to the measured bandpower
+        delta_cb = dbs - self.bandpowers
+
+        # Construct the full covariance matrix
+        self.cov += self.beam_cov * np.outer(dbs, dbs)
+
+        chi2 = delta_cb @ np.linalg.inv(self.cov) @ delta_cb
+        slogdet = np.product(np.linalg.slogdet(self.cov))
+        self.log.debug(f"SPT3G X²/ndof = {chi2:.2f}/{len(delta_cb)}")
+        self.log.debug(f"SPT3G detcov = {slogdet:.2f}")
+        return -0.5 * (chi2 + slogdet)
 
     def logp(self, **data_params):
         Cls = self.provider.get_Cl(ell_factor=True)
