@@ -7,7 +7,7 @@ likelihood code https://pole.uchicago.edu/public/data/dutcher21/SPT3G_2018_EETE_
 
 """
 
-# Global
+import itertools
 import os
 import re
 from typing import Optional, Sequence
@@ -101,10 +101,6 @@ class SPT3GPrototype(InstallableLikelihood):
         if self.windows_lmin < 1 or self.windows_lmin >= self.windows_lmax:
             raise LoggedError(self.log, "Invalid ell ranges for SPTPol")
 
-        # bands_per_freq = 3  # Should be three for SPTpol (TT,TE,EE, although mostly ignore TT).
-        # self.nband = bands_per_freq * self.nfreq
-        # self.nall = self.nbin * self.nfreq * (bands_per_freq - 1)  # Cov doesn't know about TT.
-
         # Read in bandpowers (remove index column)
         self.bandpowers = np.loadtxt(os.path.join(self.data_folder, self.bp_file), unpack=True)[1:]
 
@@ -113,11 +109,6 @@ class SPT3GPrototype(InstallableLikelihood):
 
         # Read in beam covariance
         self.beam_cov = np.loadtxt(os.path.join(self.data_folder, self.beam_cov_file))
-
-        # self.log.debug(f"First entry of covariance matrix: {cov[0, 0]}")
-        # self.invcov = np.linalg.inv(cov)
-        # self.logp_const = np.log(2 * np.pi) * (-len(self.spec) / 2)
-        # self.logp_const -= 0.5 * np.linalg.slogdet(cov)[1]
 
         # Read in windows
         self.windows = np.array(
@@ -154,22 +145,25 @@ class SPT3GPrototype(InstallableLikelihood):
         self.log.debug(f"Using {self.cross_spectra} cross-spectra")
         self.log.debug(f"Using {self.frequencies} GHz frequency bands")
 
-        # Read in calibration covariance and select frequencies
+        # Read in calibration covariance and select mode/frequencies
+        # The order of the cal covariance is T90, T150, T220, E90, E150, E220
         calib_cov = np.loadtxt(os.path.join(self.data_folder, self.calib_cov_file))
         cal_indices = np.array([[90.0, 150.0, 220.0].index(freq) for freq in self.frequencies])
-        cal_indices = np.concatenate([cal_indices, len(cal_indices) + cal_indices])
+        if "TE" not in self.cross_spectra:
+            # Only polar calibrations shift by 3
+            cal_indices += 3
+        else:
+            cal_indices = np.concatenate([cal_indices, cal_indices + 3])
         calib_cov = calib_cov[cal_indices[:, None], cal_indices]
         self.inv_calib_cov = np.linalg.inv(calib_cov)
+        self.calib_params = np.array(
+            ["map{}cal{}".format(*p) for p in itertools.product(["T", "P"], [90, 150, 220])]
+        )[cal_indices]
+        self.log.debug(f"Calibration parameters: {self.calib_params}")
 
         self.lmin = self.windows_lmin
         self.lmax = self.windows_lmax + 1  # to match fortran convention
         self.ells = np.arange(self.lmin, self.lmax)
-        # self.cl_to_dl_conversion = (self.ells * (self.ells + 1)) / (2 * np.pi)
-        # ells = np.arange(self.lmin - 1, self.lmax + 1)
-        # self.rawspec_factor = ells ** 2 / (ells * (ells + 1)) * 2 * np.pi
-
-        # for var in ["nbin", "nfreq", "nall", "windows_lmin", "windows_lmax", "data_folder", "lmax"]:
-        #     self.log.debug(f"{var} = {getattr(self, var)}")
 
     def get_requirements(self):
         # State requisites to the theory code
@@ -290,9 +284,15 @@ class SPT3GPrototype(InstallableLikelihood):
 
         chi2 = delta_cb @ np.linalg.inv(self.cov) @ delta_cb
         slogdet = np.product(np.linalg.slogdet(self.cov))
+
+        # Add calibration prior
+        delta_cal = np.log(np.array([params_values.get(p) for p in self.calib_params]))
+        cal_prior = delta_cal @ self.inv_calib_cov @ delta_cal
+
         self.log.debug(f"SPT3G X²/ndof = {chi2:.2f}/{len(delta_cb)}")
         self.log.debug(f"SPT3G detcov = {slogdet:.2f}")
-        return -0.5 * (chi2 + slogdet)
+        self.log.debug(f"SPT3G cal. prior = {cal_prior:.2f}")
+        return -0.5 * (chi2 + slogdet + cal_prior)
 
     def logp(self, **data_params):
         Cls = self.provider.get_Cl(ell_factor=True)

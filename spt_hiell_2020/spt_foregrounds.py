@@ -389,9 +389,9 @@ class SPTforegounds(HasLogger):
         # dusty index prior
         del_alpha = self.spt_prior_clusterpoisson
         if del_alpha > 0:
-            getForegroundPriorLnL = getForegroundPriorLnL + (
-                foregrounds["T_dg_po"] - foregrounds["T_dg_cl"]
-            ) ** 2 / (2 * (del_alpha) ** 2)
+            PriorLnL += (foregrounds["T_dg_po"] - foregrounds["T_dg_cl"]) ** 2 / (
+                2 * (del_alpha) ** 2
+            )
 
         # cirrus prior
         cirrus_factor = 1
