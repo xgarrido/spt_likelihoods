@@ -9,6 +9,14 @@ code for ``CosmoMC`` sampler.
 .. image:: https://img.shields.io/github/workflow/status/xgarrido/spt_likelihoods/Testing/master
    :target: https://github.com/xgarrido/spt_likelihoods/actions
 
+The package includes the following likelihoods:
+
+- ``sptpol_2017`` relates to SPTPol EETE likelihood used in `Henning et al. <https://arxiv.org/abs/1707.09353>`_, 2017. The original ``Fortran`` code is available `here <https://pole.uchicago.edu/public/data/henning17/>`_ or in `LAMBDA <https://lambda.gsfc.nasa.gov/product/spt/sptpol_lh_2017_get.cfm>`_.
+
+- ``spt_hiell_2020`` relates to SPT-SZ TT likelihood used in `Reichardt et al. <https://arxiv.org/abs/2002.06197>`_, 2020. The original ``Fortran`` code is available in `LAMBDA <https://lambda.gsfc.nasa.gov/product/spt/spt_ps_2020_get.cfm>`_.
+
+- ``spt3g_2020`` relates to SPT3G EETE likelihood used in `Dutcher et al. <https://arxiv.org/abs/2101.01684>`_, 2021. The original ``Fortran`` code is available `here <https://pole.uchicago.edu/public/data/dutcher21/#Likelihood>`_.
+
 
 Installing the code
 -------------------
