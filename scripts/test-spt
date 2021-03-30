@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+
+import unittest
+
+unittest.main(module="sptpol_2017.tests.test_sptpol", exit=False)
+unittest.main(module="spt3g_2020.tests.test_spt3g", exit=False)
+unittest.main(module="spt_hiell_2020.tests.test_spt_hiell", exit=False)

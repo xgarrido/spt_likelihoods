@@ -58,4 +58,4 @@ You can test the ``SPT`` likelihoods  by doing
 
 .. code:: shell
 
-    $ python -m unittest spt.tests.test_sptpol
+    $ test-spt

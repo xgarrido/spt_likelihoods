@@ -4,6 +4,8 @@ setup(
     name="spt",
     version="1.0",
     description="SPT likelihoods for cobaya",
+    author="Xavier Garrido",
+    author_email="xavier.garrido@ijclab.in2p3.fr",
     zip_safe=True,
     packages=find_packages(),
     python_requires=">=3.7",
@@ -11,5 +13,9 @@ setup(
         "astropy",
         "cobaya>=3.0.4",
     ],
-    package_data={f"{lkl}": ["*.yaml", "*.bibtex"] for lkl in ["sptpol_2017", "spt_hiell_2020"]},
+    package_data={
+        f"{lkl}": ["*.yaml", "*.bibtex", "tests/*.py", "tests/data/*.npy"]
+        for lkl in ["sptpol_2017", "spt_hiell_2020", "spt3g_2020"]
+    },
+    scripts=["scripts/test-spt"],
 )
