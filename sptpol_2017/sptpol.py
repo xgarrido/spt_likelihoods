@@ -9,7 +9,7 @@ likelihood code https://lambda.gsfc.nasa.gov/product/spt/sptpol_lh_2017_get.cfm
 
 # Global
 import os
-from typing import Optional, Sequence
+from typing import Optional
 
 import numpy as np
 from cobaya.conventions import _packages_path
