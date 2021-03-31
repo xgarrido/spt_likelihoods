@@ -136,7 +136,7 @@ class SPTPolPrototype(InstallableLikelihood):
         # State requisites to the theory code
         return {"Cl": {cl: self.lmax for cl in self.use_cl}}
 
-    def get_foregrounds(self, dlte, dlee, **params_values):
+    def get_foregrounds(self, **params_values):
         # First get model foreground spectrum (in Cl).
         # Note all the foregrounds are recorded in Dl at l=3000, so we
         # divide by d3000 to get to a normalized Cl spectrum.
@@ -160,7 +160,7 @@ class SPTPolPrototype(InstallableLikelihood):
 
     def loglike(self, dlte, dlee, **params_values):
         # Getting foregrounds
-        dlte_fg, dlee_fg = self.get_foregrounds(dlte, dlee, **params_values)
+        dlte_fg, dlee_fg = self.get_foregrounds(**params_values)
 
         # CMB from theory
         lmin, lmax = self.lmin, self.lmax
@@ -221,18 +221,15 @@ class TEEE(SPTPolPrototype):
     r"""
     SPTpol 2017 500d EETE power spectrum 50 < ell < 8000 (Henning et al 2017)
     """
-    pass
 
 
 class TE(SPTPolPrototype):
     r"""
     SPTpol 2017 500d TE power spectrum 50 < ell < 8000 (Henning et al 2017)
     """
-    pass
 
 
 class EE(SPTPolPrototype):
     r"""
     SPTpol 2017 500d EE power spectrum 50 < ell < 8000 (Henning et al 2017)
     """
-    pass
