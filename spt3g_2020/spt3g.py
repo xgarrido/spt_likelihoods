@@ -51,9 +51,6 @@ class SPT3GPrototype(InstallableLikelihood):
 
     poisson_switch: Optional[bool] = True
     dust_switch: Optional[bool] = True
-    radio_galaxies_nu0: Optional[float] = 150.0
-    dsfg_nu0: Optional[float] = 150.0
-    dust_nu0: Optional[float] = 150.0
 
     beam_cov_scaling: Optional[float] = 1.0
 
@@ -305,4 +302,3 @@ class TEEE(SPT3GPrototype):
     SPT-3G Y1 95, 150, 220GHz bandpowers, l=300-3000, EE/TE
     Written by Lennart Balkenhol
     """
-    pass
