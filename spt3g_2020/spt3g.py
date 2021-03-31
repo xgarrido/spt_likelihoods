@@ -129,8 +129,8 @@ class SPT3GPrototype(InstallableLikelihood):
         )
         cov_indices = cov_indices.flatten()
         # Select spectra/cov elements given indices
-        self.cov = self.cov[np.ix_(cov_indices)]
-        self.beam_cov = self.beam_cov[np.ix_(cov_indices)] * self.beam_cov_scaling
+        self.cov = self.cov[np.ix_(cov_indices, cov_indices)]
+        self.beam_cov = self.beam_cov[np.ix_(cov_indices, cov_indices)] * self.beam_cov_scaling
         self.log.debug(f"Selected bp indices: {vec_indices}")
         self.log.debug(f"Selected cov indices: {cov_indices}")
 
@@ -154,7 +154,7 @@ class SPT3GPrototype(InstallableLikelihood):
             cal_indices += 3
         else:
             cal_indices = np.concatenate([cal_indices, cal_indices + 3])
-        calib_cov = calib_cov[cal_indices[:, None], cal_indices]
+        calib_cov = calib_cov[np.ix_(cal_indices, cal_indices)]
         self.inv_calib_cov = np.linalg.inv(calib_cov)
         self.calib_params = np.array(
             ["map{}cal{}".format(*p) for p in itertools.product(["T", "P"], [90, 150, 220])]
