@@ -277,10 +277,10 @@ class SPT3GPrototype(InstallableLikelihood):
         delta_cb = dbs - self.bandpowers
 
         # Construct the full covariance matrix
-        self.cov += self.beam_cov * np.outer(dbs, dbs)
+        cov_w_beam = self.cov + self.beam_cov * np.outer(dbs, dbs)
 
-        chi2 = delta_cb @ np.linalg.inv(self.cov) @ delta_cb
-        slogdet = np.product(np.linalg.slogdet(self.cov))
+        chi2 = delta_cb @ np.linalg.inv(cov_w_beam) @ delta_cb
+        sign, slogdet = np.linalg.slogdet(cov_w_beam)
 
         # Add calibration prior
         delta_cal = np.log(np.array([params_values.get(p) for p in self.calib_params]))
