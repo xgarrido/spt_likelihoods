@@ -68,7 +68,7 @@ You can test the ``SPT`` likelihoods by doing
 
     $ test-spt
 
-It will perform basic $\chi^2$ checks over the three different likelihoods.
+It will perform basic Χ² checks over the three different likelihoods.
 
 You can also run MCMC chains with
 
