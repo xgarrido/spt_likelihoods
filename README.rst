@@ -53,17 +53,25 @@ job. For instance, if you do the next command
 
 .. code:: shell
 
-    $ cobaya-install /where/to/clone/examples/spt_example.yaml -p /where/to/put/packages
+    $ cobaya-install /where/to/clone/examples/spt3g_example.yaml -p /where/to/put/packages
 
-data and code such as `CAMB <https://github.com/cmbant/CAMB>`_ will be downloaded and installed
-within the ``/where/to/put/packages`` directory. For more details, you can have a look to ``cobaya``
-`documentation <https://cobaya.readthedocs.io/en/latest/installation_cosmo.html>`_.
+data for SPT3G and code such as `CAMB <https://github.com/cmbant/CAMB>`_ will be downloaded and
+installed within the ``/where/to/put/packages`` directory. For more details, you can have a look to
+``cobaya`` `documentation <https://cobaya.readthedocs.io/en/latest/installation_cosmo.html>`_.
 
 Running/testing the code
 ------------------------
 
-You can test the ``SPT`` likelihoods  by doing
+You can test the ``SPT`` likelihoods by doing
 
 .. code:: shell
 
     $ test-spt
+
+It will perform basic $\chi^2$ checks over the three different likelihoods.
+
+You can also run MCMC chains with
+
+.. code:: shell
+
+    $ cobaya-run /where/to/clone/examples/spt3g_example.yaml -p /where/to/put/packages
