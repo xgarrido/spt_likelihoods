@@ -12,7 +12,6 @@ import os
 from typing import Optional
 
 import numpy as np
-from cobaya.conventions import _packages_path
 from cobaya.likelihoods.base_classes import InstallableLikelihood
 from cobaya.log import LoggedError
 
@@ -39,7 +38,7 @@ class SPTPolPrototype(InstallableLikelihood):
 
     def initialize(self):
         # Set path to data
-        if (not getattr(self, "path", None)) and (not getattr(self, _packages_path, None)):
+        if (not getattr(self, "path", None)) and (not getattr(self, "packages_path", None)):
             raise LoggedError(
                 self.log,
                 f"No path given to SPTPol data. Set the likelihood property 'path' or "

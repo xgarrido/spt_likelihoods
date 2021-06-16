@@ -11,7 +11,7 @@ setup(
     python_requires=">=3.7",
     install_requires=[
         "astropy",
-        "cobaya>=3.0.4",
+        "cobaya>=3.1",
     ],
     package_data={
         f"{lkl}": ["*.yaml", "*.bibtex", "tests/*.py", "tests/data/*.npy"]

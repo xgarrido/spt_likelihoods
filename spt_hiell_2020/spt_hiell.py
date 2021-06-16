@@ -11,7 +11,6 @@ import os
 from typing import Optional, Sequence
 
 import numpy as np
-from cobaya.conventions import _packages_path
 from cobaya.likelihoods.base_classes import InstallableLikelihood
 from cobaya.log import LoggedError
 
@@ -45,7 +44,7 @@ class SPTHiellLikelihood(InstallableLikelihood):
 
     def initialize(self):
         # Set path to data
-        if (not getattr(self, "path", None)) and (not getattr(self, _packages_path, None)):
+        if (not getattr(self, "path", None)) and (not getattr(self, "packages_path", None)):
             raise LoggedError(
                 self.log,
                 "No path given to CIB_Likelihood data. Set the likelihood property 'path' or the common property '%s'.",
