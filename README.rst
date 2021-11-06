@@ -26,7 +26,7 @@ You can install the following code by just typing
 
 .. code:: shell
 
-    $ pip install https://github.com/xgarrido/spt_likelihoods.git
+    $ pip install git+https://github.com/xgarrido/spt_likelihoods.git
 
 
 If you plan to develop/modify the code, the easiest way is to clone this repository to some location
