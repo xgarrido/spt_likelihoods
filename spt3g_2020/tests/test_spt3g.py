@@ -68,7 +68,7 @@ class SPT3GTest(unittest.TestCase):
             "likelihood": {"spt3g_2020.TEEE": None},
             "theory": {"camb": {"extra_args": {"lens_potential_accuracy": 1}}},
             "params": {**cosmo_params, **fg_params},
-            "modules": packages_path,
+            "packages_path": packages_path,
         }
 
         model = get_model(info)
