@@ -216,32 +216,26 @@ class SPTHiellLikelihood(InstallableLikelihood):
                 self.spt_eff_fr + FTSfactor,
                 self.spt_norm_fr,
                 self.spt_windows_lmin,
-                self.spt_windows_lmax,
+                self.spt_windows_lmax
             )
             dl_th = dl_cmb[self.lmin : self.lmax] + dl_fg[self.lmin : self.lmax]
 
             # bin theory with window functions
-            tmpcb = self.windows @ dl_th
+            tmpcb = self.windows[thisoffset:thisoffset+thisbin] @ dl_th
 
             # apply prefactors
-            tmpcb = (
-                tmpcb
-                * self.spt_prefactor[k]
-                * self.spt_prefactor[j]
-                * CalFactors[j]
-                * CalFactors[k]
-            )
+            tmpcb = tmpcb * self.spt_prefactor[k] * self.spt_prefactor[j] * CalFactors[j] * CalFactors[k]
 
-            cbs[thisoffset : thisoffset + thisbin] = tmpcb[thisoffset : thisoffset + thisbin]
+            cbs[thisoffset : thisoffset + thisbin] = tmpcb
 
         # Residuals
         delta_cb = cbs - self.spec
 
         # Dl covariance (with beams)
-        self.cov += self.beam_err * np.outer(cbs, cbs)
+        cov_w_beam = self.cov + self.beam_err * np.outer(cbs, cbs)
 
         # compute LogLike
-        LnL, detcov = self._gaussian_loglike(self.cov, delta_cb)
+        LnL, detcov = self._gaussian_loglike(cov_w_beam, delta_cb)
         SPTHiEllLnLike = LnL + detcov
 
         # Add FG priors
