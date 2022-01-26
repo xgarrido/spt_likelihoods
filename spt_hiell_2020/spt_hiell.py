@@ -4,7 +4,7 @@
 power spectrum). Adapted from Fortran likelihood code
 https://lambda.gsfc.nasa.gov/product/spt/spt_ps_2020_get.cfm
 
-:Author: Mathieu Tristram
+:Author: Matthieu Tristram
 
 """
 import os
