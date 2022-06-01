@@ -12,6 +12,7 @@ import os
 from typing import Optional
 
 import numpy as np
+from cobaya.conventions import packages_path_input
 from cobaya.likelihoods.base_classes import InstallableLikelihood
 from cobaya.log import LoggedError
 
@@ -38,11 +39,11 @@ class SPTPolPrototype(InstallableLikelihood):
 
     def initialize(self):
         # Set path to data
-        if (not getattr(self, "path", None)) and (not getattr(self, "packages_path", None)):
+        if (not getattr(self, "path", None)) and (not getattr(self, packages_path_input, None)):
             raise LoggedError(
                 self.log,
-                f"No path given to SPTPol data. Set the likelihood property 'path' or "
-                "the common property '{_packages_path}'.",
+                "No path given to SPTPol data. Set the likelihood property 'path' or "
+                f"the common property '{packages_path_input}'.",
             )
         # If no path specified, use the modules path
         data_file_path = os.path.normpath(
@@ -87,7 +88,7 @@ class SPTPolPrototype(InstallableLikelihood):
             if self.use_cl == ["ee"]:
                 self.log.debug("Exploding TE auto-cov block...")
                 for i in range(self.nbin):
-                    tmp = cov[i, i] * 10 ** 24
+                    tmp = cov[i, i] * 10**24
                     cov[i, :] = 0.0
                     cov[:, i] = 0.0
                     cov[i, i] = tmp
@@ -95,7 +96,7 @@ class SPTPolPrototype(InstallableLikelihood):
             if self.use_cl == ["te"]:
                 self.log.debug("Exploding EE auto-cov block...")
                 for i in range(self.nbin, self.nall):
-                    tmp = cov[i, i] * 10 ** 24
+                    tmp = cov[i, i] * 10**24
                     cov[i, :] = 0.0
                     cov[:, i] = 0.0
                     cov[i, i] = tmp
@@ -126,7 +127,7 @@ class SPTPolPrototype(InstallableLikelihood):
         self.ells = np.arange(self.lmin, self.lmax)
         self.cl_to_dl_conversion = (self.ells * (self.ells + 1)) / (2 * np.pi)
         ells = np.arange(self.lmin - 1, self.lmax + 1)
-        self.rawspec_factor = ells ** 2 / (ells * (ells + 1)) * 2 * np.pi
+        self.rawspec_factor = ells**2 / (ells * (ells + 1)) * 2 * np.pi
 
         for var in ["nbin", "nfreq", "nall", "windows_lmin", "windows_lmax", "data_folder", "lmax"]:
             self.log.debug(f"{var} = {getattr(self, var)}")
@@ -195,8 +196,8 @@ class SPTPolPrototype(InstallableLikelihood):
         # Scale theory spectrum by calibration:
         mapTcal = params_values.get("mapTcal")
         mapPcal = params_values.get("mapPcal")
-        cal_TE = mapTcal ** 2 * mapPcal
-        cal_EE = mapTcal ** 2 * mapPcal ** 2
+        cal_TE = mapTcal**2 * mapPcal
+        cal_EE = mapTcal**2 * mapPcal**2
         dbte /= cal_TE
         dbee /= cal_EE
 

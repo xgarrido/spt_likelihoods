@@ -13,6 +13,7 @@ import re
 from typing import Optional, Sequence
 
 import numpy as np
+from cobaya.conventions import packages_path_input
 from cobaya.likelihoods.base_classes import InstallableLikelihood
 from cobaya.log import LoggedError
 
@@ -67,11 +68,11 @@ class SPT3GPrototype(InstallableLikelihood):
 
     def initialize(self):
         # Set path to data
-        if (not getattr(self, "path", None)) and (not getattr(self, "packages_path", None)):
+        if (not getattr(self, "path", None)) and (not getattr(self, packages_path_input, None)):
             raise LoggedError(
                 self.log,
-                f"No path given to SPTPol data. Set the likelihood property 'path' or "
-                "the common property '{_packages_path}'.",
+                "No path given to SPTPol data. Set the likelihood property 'path' or "
+                f"the common property '{packages_path_input}'.",
             )
         # If no path specified, use the modules path
         data_file_path = os.path.normpath(
@@ -185,8 +186,8 @@ class SPT3GPrototype(InstallableLikelihood):
             x0 = Ghz_Kelvin * nu0 / T
             x = Ghz_Kelvin * nu / T
 
-            dBdT0 = x0 ** 4 * np.exp(x0) / (np.exp(x0) - 1) ** 2
-            dBdT = x ** 4 * np.exp(x) / (np.exp(x) - 1) ** 2
+            dBdT0 = x0**4 * np.exp(x0) / (np.exp(x0) - 1) ** 2
+            dBdT = x**4 * np.exp(x) / (np.exp(x) - 1) ** 2
 
             return dBdT / dBdT0
 
@@ -211,7 +212,7 @@ class SPT3GPrototype(InstallableLikelihood):
             if self.super_sample_lensing:
                 kappa = params_values.get("kappa")
                 dls += -kappa * (
-                    self.ells ** 2 * (self.ells + 1) / (2 * np.pi) * cl_derivative
+                    self.ells**2 * (self.ells + 1) / (2 * np.pi) * cl_derivative
                     + 2 * dl_cmb[self.ells]
                 )
 
@@ -224,7 +225,7 @@ class SPT3GPrototype(InstallableLikelihood):
             dls += (
                 -self.aberration_coefficient
                 * cl_derivative
-                * self.ells ** 2
+                * self.ells**2
                 * (self.ells + 1)
                 / (2 * np.pi)
             )
