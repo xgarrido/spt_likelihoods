@@ -10,11 +10,27 @@
   FTS_calibration_error:
     value: 0.0
     latex: \sigma(FTS)
+
+  #Sunyaev Zeldovich
   czero_tsz:
-    value: 3.5
+    prior: 
+      min: 0
+      max: 40
+    ref:
+      dist: norm
+      loc: 3.5
+      scale: 0.25
+    proposal: 1
     latex: D_{3000}^{tSZ}
   czero_ksz:
-    value: 3.9
+    prior: 
+      min: 0
+      max: 40
+    ref:
+      dist: norm
+      loc: 3.9
+      scale: 0.25
+    proposal: 1
     latex: D_{3000}^{kSZ}
   czero_ksz2:
     value: 0.
@@ -22,13 +38,27 @@
 
   #DSFG Poisson
   czero_dg_po:
-    value: 8.6
+    prior:
+      min: 0
+      max: 40
+    ref:
+      dist: norm
+      loc: 8.6
+      scale: 0.25
+    proposal: 0.2
     latex: D_{3000}^{DSFG-p}
   T_dg_po:
     value: 25
     latex: T^{DSFG-p}
   beta_dg_po:
-    value: 1.5
+    prior:
+      min: 0
+      max: 6
+    ref:
+      dist: norm
+      loc:   1.5
+      scale: 0.05
+    proposal: 0.1
     latex: \beta^{DSFG-p}
   sigmasq_dg_po:
     value: 0.1
@@ -36,13 +66,27 @@
 
   #DSFG Clustered 1halo
   czero_dg_cl:
-    value: 3.4
+    prior:
+      min: 0.
+      max: 40
+    ref:
+      dist: norm
+      loc:   3.4
+      scale: 0.1
+    proposal: 0.2
     latex: D_{3000}^{DSFG-1h}
   T_dg_cl:
     value: 25
     latex: T^{DSFG-1h}
   beta_dg_cl:
-    value: 0.5
+    prior:
+      min: 0
+      max: 6
+    ref:
+      dist: norm
+      loc:   0.5
+      scale: 0.1
+    proposal: 0.1
     latex: \beta^{DSFG-1h}
   sigmasq_dg_cl:
     value: 0.
@@ -50,13 +94,27 @@
 
   #DSFG Clustered 2halo
   czero_dg_cl2:
-    value: 1.0
+    prior:
+      min: 0.
+      max: 6
+    ref:
+      dist: norm
+      loc:   1.
+      scale: 0.1
+    proposal: 0.2
     latex: D_{3000}^{DSFG-2h}
   T_dg_cl2:
     value: 25
     latex: T^{DSFG-2h}
   beta_dg_cl2:
-    value: 0.5
+    prior:
+      min: 0
+      max: 6
+    ref:
+      dist: norm
+      loc:   0.5
+      scale: 0.1
+    proposal: 0.1
     latex: \beta^{DSFG-2h}
   sigmasq_dg_cl2:
     value: 0.
@@ -64,7 +122,14 @@
 
   #Radio Galaxies
   czero_rg_po:
-    value: 1.0
+    prior:
+      min: 0.
+      max: 10
+    ref:
+      dist: norm
+      loc:   1.0
+      scale: 0.1
+    proposal: 0.1
     latex: D_{3000}^{RG-po}
   czero_rg_cl:
     value: 0.
@@ -78,7 +143,14 @@
 
   #tSZxCIB
   tsz_dg_cor:
-    value: 0.07
+    prior:
+      min: -1
+      max: 1
+    ref:
+      dist: norm
+      loc:   0.07
+      scale: 0.05
+    proposal: 0.1
     latex: \xsi^{tSZxCIB}
   tsz_cib_slope:
     value: 0.
@@ -91,7 +163,14 @@
 
   #Cirrus
   czero_cirrus:
-    value: 2.19
+    prior:
+      min: 0.
+      max: 40
+    ref:
+      dist: norm
+      loc:   2.19
+      scale: 0.1
+    proposal: 0.1
     latex: D_{3000}^{cirrus}
   T_cirrus:
     value: 25
