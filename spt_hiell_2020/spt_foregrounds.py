@@ -5,7 +5,6 @@ import os
 import numpy as np
 from cobaya.log import HasLogger, LoggedError
 
-
 def cosmo_scale_ksz(H0, sigma8, omegb, omegam, ns, tau):
     return (
         (H0 / 71.0) ** 1.7
