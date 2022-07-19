@@ -4,13 +4,14 @@
 power spectrum). Adapted from Fortran likelihood code
 https://lambda.gsfc.nasa.gov/product/spt/spt_ps_2020_get.cfm
 
-:Author: Mathieu Tristram
+:Author: Matthieu Tristram
 
 """
 import os
 from typing import Optional, Sequence
 
 import numpy as np
+from cobaya.conventions import packages_path_input
 from cobaya.likelihoods.base_classes import InstallableLikelihood
 from cobaya.log import LoggedError
 
@@ -44,11 +45,11 @@ class SPTHiellLikelihood(InstallableLikelihood):
 
     def initialize(self):
         # Set path to data
-        if (not getattr(self, "path", None)) and (not getattr(self, "packages_path", None)):
+        if (not getattr(self, "path", None)) and (not getattr(self, packages_path_input, None)):
             raise LoggedError(
                 self.log,
-                "No path given to CIB_Likelihood data. Set the likelihood property 'path' or the common property '%s'.",
-                _packages_path,
+                "No path given to SPT likelihood data. Set the likelihood property 'path'"
+                f" or the common property '{packages_path_input}'.",
             )
 
         # If no path specified, use the modules path
@@ -61,8 +62,7 @@ class SPTHiellLikelihood(InstallableLikelihood):
         if not os.path.exists(self.data_folder):
             raise LoggedError(
                 self.log,
-                "The 'data_folder' directory does not exist. Check the given path [%s].",
-                self.data_folder,
+                f"The 'data_folder' directory does not exist. Check the given path [{self.data_folder}].",
             )
 
         # Init foreground model

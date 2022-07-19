@@ -13,6 +13,7 @@ import re
 from typing import Optional, Sequence
 
 import numpy as np
+from cobaya.conventions import packages_path_input
 from cobaya.likelihoods.base_classes import InstallableLikelihood
 from cobaya.log import LoggedError
 
@@ -34,7 +35,7 @@ default_spectra_list = [
 
 class SPT3GPrototype(InstallableLikelihood):
     install_options = {
-        "download_url": "https://pole.uchicago.edu/public/data/dutcher21/SPT3G_2018_EETE_likelihood.tar.gz",
+        "download_url": "https://pole.uchicago.edu/public/data/dutcher21/SPT3G_2018_EETE_likelihood_v3.zip",
         "data_path": "spt3g_2018",
     }
 
@@ -58,7 +59,7 @@ class SPT3GPrototype(InstallableLikelihood):
     # SPT-3G Y1 EE/TE Effective band centres for polarised galactic dust.
     nu_eff_list: Optional[dict] = {90: 9.670270e01, 150: 1.499942e02, 220: 2.220433e02}
 
-    data_folder: Optional[str] = "spt3g_2018/SPT3G_2018_EETE_likelihood/data/SPT3G_Y1_EETE"
+    data_folder: Optional[str] = "spt3g_2018/SPT3G_2018_EETE_likelihood_v3/data/SPT3G_Y1_EETE"
     bp_file: Optional[str]
     cov_file: Optional[str]
     beam_cov_file: Optional[str]
@@ -67,11 +68,11 @@ class SPT3GPrototype(InstallableLikelihood):
 
     def initialize(self):
         # Set path to data
-        if (not getattr(self, "path", None)) and (not getattr(self, "packages_path", None)):
+        if (not getattr(self, "path", None)) and (not getattr(self, packages_path_input, None)):
             raise LoggedError(
                 self.log,
-                f"No path given to SPTPol data. Set the likelihood property 'path' or "
-                "the common property '{_packages_path}'.",
+                "No path given to SPTPol data. Set the likelihood property 'path' or "
+                f"the common property '{packages_path_input}'.",
             )
         # If no path specified, use the modules path
         data_file_path = os.path.normpath(
@@ -185,8 +186,8 @@ class SPT3GPrototype(InstallableLikelihood):
             x0 = Ghz_Kelvin * nu0 / T
             x = Ghz_Kelvin * nu / T
 
-            dBdT0 = x0 ** 4 * np.exp(x0) / (np.exp(x0) - 1) ** 2
-            dBdT = x ** 4 * np.exp(x) / (np.exp(x) - 1) ** 2
+            dBdT0 = x0**4 * np.exp(x0) / (np.exp(x0) - 1) ** 2
+            dBdT = x**4 * np.exp(x) / (np.exp(x) - 1) ** 2
 
             return dBdT / dBdT0
 
@@ -211,7 +212,7 @@ class SPT3GPrototype(InstallableLikelihood):
             if self.super_sample_lensing:
                 kappa = params_values.get("kappa")
                 dls += -kappa * (
-                    self.ells ** 2 * (self.ells + 1) / (2 * np.pi) * cl_derivative
+                    self.ells**2 * (self.ells + 1) / (2 * np.pi) * cl_derivative
                     + 2 * dl_cmb[self.ells]
                 )
 
@@ -224,7 +225,7 @@ class SPT3GPrototype(InstallableLikelihood):
             dls += (
                 -self.aberration_coefficient
                 * cl_derivative
-                * self.ells ** 2
+                * self.ells**2
                 * (self.ells + 1)
                 / (2 * np.pi)
             )
