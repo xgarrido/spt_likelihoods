@@ -8,7 +8,7 @@ setup(
     author_email="xavier.garrido@ijclab.in2p3.fr",
     zip_safe=True,
     packages=find_packages(),
-    python_requires=">=3.7",
+    python_requires=">=3.6",
     install_requires=[
         "astropy",
         "cobaya>=3.1",
