@@ -150,7 +150,7 @@ params:
     value: 25
     latex: T^{DSFG-2h}
   beta_dg_cl2:
-    value: "lambda beta_dg_cl: beta_dg_cl"
+    value: 0.5
     latex: \beta^{DSFG-2h}
   sigmasq_dg_cl2:
     value: 0.
