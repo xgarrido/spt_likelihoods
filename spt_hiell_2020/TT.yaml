@@ -48,21 +48,21 @@ params:
       min: 0.5
       max: 2.0
     ref: 1.0
-    proposal: 0.1
+    proposal: 0.001
     latex: cal^\mathrm{95}
   mapCal150:
     prior:
       min: 0.5
       max: 2.0
     ref: 1.0
-    proposal: 0.1
+    proposal: 0.001
     latex: cal^\mathrm{150}
   mapCal220:
     prior:
       min: 0.5
       max: 2.0
     ref: 1.0
-    proposal: 0.1
+    proposal: 0.001
     latex: cal^\mathrm{220}
 
   # FTS errors in normalization -- shifts all bands together
@@ -80,20 +80,14 @@ params:
     prior:
       min: 0
       max: 40
-    ref:
-      dist: norm
-      loc: 3.5
-      scale: 0.25
-    proposal: 1
+    ref: 3.5
+    proposal: 0.5
     latex: D_{3000}^{tSZ}
   czero_ksz:
     prior:
       min: 0
       max: 40
-    ref:
-      dist: norm
-      loc: 3.9
-      scale: 0.25
+    ref: 3.9
     proposal: 1
     latex: D_{3000}^{kSZ}
   czero_ksz2:
@@ -105,41 +99,21 @@ params:
     prior:
       min: 0
       max: 40
-    ref:
-      dist: norm
-      loc: 8.6
-      scale: 0.25
-    proposal: 0.2
+    ref: 8.6
+    proposal: 0.3
     latex: D_{3000}^{DSFG-p}
   T_dg_po:
-    prior:
-      min: 10
-      max: 50
-    ref:
-      dist: norm
-      loc: 25
-      scale: 1
-    proposal: 1
+    value: 25
     latex: T^{DSFG-p}
   beta_dg_po:
     prior:
       min: 0
       max: 6
-    ref:
-      dist: norm
-      loc: 1.5
-      scale: 0.05
+    ref: 1.5
     proposal: 0.1
     latex: \beta^{DSFG-p}
   sigmasq_dg_po:
-    prior:
-      min: 0.
-      max: 2.
-    ref:
-      dist: norm
-      loc: 0.1
-      scale: 0.1
-    proposal: 0.1
+    value: 0.1
     latex: \sigma^{DSFG-p}
 
   #DSFG Clustered 1halo
@@ -147,10 +121,7 @@ params:
     prior:
       min: 0.
       max: 40
-    ref:
-      dist: norm
-      loc: 3.4
-      scale: 0.1
+    ref: 3.4
     proposal: 0.2
     latex: D_{3000}^{DSFG-1h}
   T_dg_cl:
@@ -160,10 +131,7 @@ params:
     prior:
       min: 0
       max: 6
-    ref:
-      dist: norm
-      loc: 0.5
-      scale: 0.1
+    ref: 0.5
     proposal: 0.1
     latex: \beta^{DSFG-1h}
   sigmasq_dg_cl:
@@ -175,24 +143,14 @@ params:
     prior:
       min: 0.
       max: 40.
-    ref:
-      dist: norm
-      loc: 1.
-      scale: 0.1
+    ref: 1.
     proposal: 0.2
     latex: D_{3000}^{DSFG-2h}
   T_dg_cl2:
     value: 25
     latex: T^{DSFG-2h}
   beta_dg_cl2:
-    prior:
-      min: 0
-      max: 6
-    ref:
-      dist: norm
-      loc: 0.5
-      scale: 0.1
-    proposal: 0.1
+    value: "lambda beta_dg_cl: beta_dg_cl"
     latex: \beta^{DSFG-2h}
   sigmasq_dg_cl2:
     value: 0.
@@ -203,11 +161,8 @@ params:
     prior:
       min: 0.
       max: 40.
-    ref:
-      dist: norm
-      loc: 1.0
-      scale: 0.1
-    proposal: 0.1
+    ref: 1.0
+    proposal: 0.04
     latex: D_{3000}^{RG-po}
   czero_rg_cl:
     value: 0.
@@ -216,11 +171,8 @@ params:
     prior:
       min: -10.
       max: 1.
-    ref:
-      dist: norm
-      loc: -0.7
-      scale: 0.1
-    proposal: 0.1
+    ref: -0.7
+    proposal: 0.05
     latex: \alpha^{RG}
   sigmasq_rg:
     value: 0.
@@ -231,11 +183,8 @@ params:
     prior:
       min: -1
       max: 1
-    ref:
-      dist: norm
-      loc: 0.07
-      scale: 0.05
-    proposal: 0.1
+    ref: 0.07
+    proposal: 0.04
     latex: \xi^{tSZxCIB}
   tsz_cib_slope:
     value: 0.
@@ -251,11 +200,8 @@ params:
     prior:
       min: 0.
       max: 50.
-    ref:
-      dist: norm
-      loc: 2.19
-      scale: 0.1
-    proposal: 0.1
+    ref: 2.19
+    proposal: 0.2
     latex: D_{3000}^{cirrus}
   T_cirrus:
     value: 25
