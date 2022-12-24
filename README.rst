@@ -6,7 +6,8 @@ External likelihoods for SPT experiment using `cobaya
 <https://github.com/CobayaSampler/cobaya>`_. These are ``python`` implementation of original ``Fortran``
 code for ``CosmoMC`` sampler.
 
-.. image:: https://img.shields.io/github/workflow/status/xgarrido/spt_likelihoods/Testing/master
+.. image:: https://img.shields.io/github/actions/workflow/status/xgarrido/spt_likelihoods/testing.yml
+   :alt: GitHub Workflow Status
    :target: https://github.com/xgarrido/spt_likelihoods/actions
 
 The package includes the following likelihoods:
