@@ -13,7 +13,7 @@ fiducial_covariance_filename: SPT3G_2018_TTTEEE_covariance.dat
 beam_covariance_filename: SPT3G_2018_TTTEEE_beam_covariance.dat
 
 # Calibration (mapT, mapP) covariance
-cal_covariance_file: SPT3G_2018_TTTEEE_cal_covariance.dat
+cal_covariance_filename: SPT3G_2018_TTTEEE_cal_covariance.dat
 
 # effective frequency
 nu_eff_filename: SPT3G_2018_TTTEEE_effective_band_centres.dat
@@ -40,6 +40,16 @@ spectra_to_fit:
   - 220_Tx220_T
   - 220_Tx220_E
   - 220_Ex220_E
+
+foregrounds:
+  tSZ_template_filename: foreground_templates/tSZ_Dl_shaw10_153ghz_norm1.txt
+  kSZ_template_filename: foreground_templates/kSZ_Dl_CSF_incl_patchy_norm1.txt
+  galdust_T: 19.6
+  galdust_nu0: 150.0
+  CIB_T: 25.0
+  CIB_nu0: 150.0
+  tSZ_nu0: 143.0
+
 
 params:
   kappa:

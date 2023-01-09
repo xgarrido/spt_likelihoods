@@ -18,7 +18,7 @@ from cobaya.conventions import packages_path_input
 from cobaya.likelihoods.base_classes import InstallableLikelihood
 from cobaya.log import LoggedError
 
-from . import spt3g_TTTEEE_foregrounds as fg
+from . import spt3g_TTTEEE_foregrounds as spt3g_fg
 
 default_spectra_list = [
     "90_Tx90_T",
@@ -48,7 +48,7 @@ class SPT3GPrototype(InstallableLikelihood):
         "data_path": "spt3g_2018",
     }
 
-    bibtex_file = "spt3g.bibtex"
+    bibtex_file = "spt3g_TTTEEE.bibtex"
 
     bin_min: Optional[int] = 1
     bin_max: Optional[int] = 44
@@ -101,8 +101,8 @@ class SPT3GPrototype(InstallableLikelihood):
         self.N_s = len(self.spectra_to_fit)
         for b in range(self.N_s):
             if self.spec_bin_min[b] <= 0 or self.spec_bin_max[b] >= 45:
-            raise LoggedError(self.log, f"SPT-3G 2018 TTTEEE: bad ell range selection for spectrum: {self.spectra_to_fit[b]}")
-        self.N_b = self.spec_bin_max - self.spec_bin_min + 1
+                raise LoggedError(self.log, f"SPT-3G 2018 TTTEEE: bad ell range selection for spectrum: {self.spectra_to_fit[b]}")
+        self.N_b = np.array(self.spec_bin_max) - np.array(self.spec_bin_min) + 1
 
         # Check if a late crop is requested and read in the mask if necessary
         # MT: Not Implemented 
@@ -119,16 +119,16 @@ class SPT3GPrototype(InstallableLikelihood):
         self.log.debug(f"Using {self.frequencies} GHz frequency bands")
 
         # Determine how many spectra are TT vs TE vs EE and the total number of bins we are fitting
-        self.N_s_TT = sum([c == 'TT' for c in cross_spectra])
-        self.N_s_TE = sum([c == 'TE' for c in cross_spectra])
-        self.N_s_EE = sum([c == 'EE' for c in cross_spectra])
+        self.N_s_TT = sum([c == 'TT' for c in self.cross_spectra])
+        self.N_s_TE = sum([c == 'TE' for c in self.cross_spectra])
+        self.N_s_EE = sum([c == 'EE' for c in self.cross_spectra])
 
         # Determine how many different frequencies get used
         self.N_freq = len( self.frequencies)
 
         # Band Powers
         self.bandpowers = np.loadtxt(os.path.join(self.data_folder, self.bandpower_filename), unpack=True)
-        self.bandpowers = self.bandpowers.reshape( -1, bin_max)
+        self.bandpowers = self.bandpowers.reshape( -1, self.bin_max)
 
         # Covariance Matrix
         bp_cov  = np.loadtxt(os.path.join(self.data_folder, self.covariance_filename))
@@ -156,10 +156,9 @@ class SPT3GPrototype(InstallableLikelihood):
         vec_indices = np.array([default_spectra_list.index(spec) for spec in self.spectra_to_fit])
         self.bandpowers = self.bandpowers[vec_indices].flatten()
         self.windows = self.windows[:, vec_indices, :]
-        cov_indices = np.array(
-            [np.arange(sum(self.N_b[:i]), sum(self.N_b[:i+1])) for i in vec_indices]
+        cov_indices = np.concatenate(
+            [np.arange(sum(self.N_b[:i]), sum(self.N_b[:i+1]), dtype=int) for i in vec_indices]
         )
-        cov_indices = cov_indices.flatten()
         # Select spectra/cov elements given indices
         bp_cov = bp_cov[np.ix_(cov_indices, cov_indices)]
         fid_cov = fid_cov[np.ix_(cov_indices, cov_indices)]
@@ -168,7 +167,7 @@ class SPT3GPrototype(InstallableLikelihood):
         self.log.debug(f"Selected cov indices: {cov_indices}")
 
         # Ensure covariance is positive definite
-        self.bp_cov_posdef = self.MakeCovariancePositiveDefinite(bp_cov, fid_cov)
+        self.bp_cov_posdef = self._MakeCovariancePositiveDefinite(bp_cov, fid_cov)
 
         # Calibration Covariance
         # The order of the cal covariance is T90, T150, T220, E90, E150, E220
@@ -195,20 +194,66 @@ class SPT3GPrototype(InstallableLikelihood):
         self.ells = np.arange(self.lmin, self.lmax)
 
         # Initialise foreground model
-        fg.SPT3G_2018_TTTEEE_Ini_Foregrounds()
+        self.fg = spt3g_fg.SPT3G_2018_TTTEEE_Ini_Foregrounds(data_folder=self.data_folder, **self.foregrounds)
 
         self.log.debug(f"SPT-3G 2018 TTTEEE: Likelihood successfully initialised!")
 
 
     def _MakeCovariancePositiveDefinite( self, input_cov, fiducial_cov):
+        # Checks if a matrix is positive definite
         def is_pos_def(x):
             return np.all(np.linalg.eigvals(x) > 0)
+
+        # Changes the basis of the matrix using the eigenvectors of another
+        # Goes either fowards or backwards
+        def ChangeBasisToFiducial( cov_input, cov_fiducial, forward):
+            # Calculate the eigenvectors
+            cov_eigenvalues,cov_eigenvectors = np.linalg.eig( cov_input)
+            
+            # Get the inverse of the eigenvectors matrix
+            cov_eigenvectors_inv = np.linalg.inv( cov_eigenvectors)
+
+            # Change basis (either to fiducial or back)
+            if forward:
+                cov_output = cov_eigenvectors_inv @ cov_input @ cov_eigenvectors
+            else:
+                cov_output = cov_eigenvectors @ cov_input @ cov_eigenvectors_inv
+            
+            return cov_output
+
+        # Fix negative eigenvalues of a matrix by setting anything below a threshold to some fixed value
+        def FixEvalsOfMatrix( cov_input):
+            # Calculate the eigenvectors
+            cov_eigenvalues,cov_eigenvectors = np.linalg.eig( cov_input)
+
+            # Set negative eigenvalues to a large positive number
+            cov_eigenvalues[cov_eigenvalues < self.cov_eval_cut_threshold] = cov_eval_large_number_replacement
+
+            # Get the inverse of the eigenvectors matrix
+            cov_eigenvectors_inv = np.linalg.inv( cov_eigenvectors)
+
+            # Cast back into a covariance matrix
+            cov_output = cov_eigenvectors @ np.diag(cov_eigenvalues) @ cov_eigenvectors_inv
+            
+            return cov_output
 
         if is_pos_def( input_cov):
             output_cov = input_cov
         else:
             cov_in_new_basis = ChangeBasisToFiducial(input_cov, fiducial_cov, True)
-            #MT: TO BE IMPLEMENTED
+
+            # Rescale
+            v = np.sqrt(np.diag(cov_in_new_basis))
+            cov_in_new_basis_scaled = cov_in_new_basis / np.outer(v, v)
+
+            # Fix the negative eigenvalues
+            cov_in_new_basis_scaled_fixed = FixEvalsOfMatrix( cov_in_new_basis_scaled)
+
+            # Undo rescaling
+            cov_in_new_basis_scaled_fixed *= np.outer(v, v)
+
+            # Undo change of basis
+            output_cov = ChangeBasisToFiducial(cov_in_new_basis_scaled_fixed, fiducial_cov, False)
 
         return output_cov
 
@@ -221,9 +266,10 @@ class SPT3GPrototype(InstallableLikelihood):
 
         lmin, lmax = self.lmin, self.lmax
         ells = np.arange(lmin, lmax + 2)
+        fg = self.fg
 
         dbs = np.empty_like(self.bandpowers)
-        dlfg = 0.
+        dlfg = np.zeros( fg.N_fg_max, SPT3G_windows_lmax - SPT3G_windows_lmin + 1)
         for i, (cross_spectrum, cross_frequency) in enumerate(
             zip(self.cross_spectra, self.cross_frequencies)
         ):
