@@ -93,7 +93,7 @@ class SPT3GPrototype(InstallableLikelihood):
                 self.log,
                 f"The 'data_folder' directory does not exist. Check the given path [{self.data_folder}].",
             )
-
+        
         # Get likelihood name and add the associated mode
         lkl_name = self.__class__.__name__.lower()
         self.use_cl = [lkl_name[i : i + 2] for i in range(0, len(lkl_name), 2)]
@@ -131,7 +131,8 @@ class SPT3GPrototype(InstallableLikelihood):
         self.bandpowers = self.bandpowers.reshape( -1, bin_max)
 
         # Covariance Matrix
-        bp_cov = np.loadtxt(os.path.join(self.data_folder, self.covariance_filename))
+        bp_cov  = np.loadtxt(os.path.join(self.data_folder, self.covariance_filename))
+        fid_cov = np.loadtxt(os.path.join(self.data_folder, self.fiducial_covariance_filename))
 
         # Beam Covariance Matrix
         self.beam_cov = np.loadtxt(os.path.join(self.data_folder, self.beam_covariance_filename))
@@ -161,12 +162,13 @@ class SPT3GPrototype(InstallableLikelihood):
         cov_indices = cov_indices.flatten()
         # Select spectra/cov elements given indices
         bp_cov = bp_cov[np.ix_(cov_indices, cov_indices)]
+        fid_cov = fid_cov[np.ix_(cov_indices, cov_indices)]
         self.beam_cov = self.beam_cov[np.ix_(cov_indices, cov_indices)]
         self.log.debug(f"Selected bp indices: {vec_indices}")
         self.log.debug(f"Selected cov indices: {cov_indices}")
 
-        #MT: TO BE IMPLEMENTED
-        self.bp_cov_posdef = self.MakeCovariancePositiveDefinite(bp_cov)
+        # Ensure covariance is positive definite
+        self.bp_cov_posdef = self.MakeCovariancePositiveDefinite(bp_cov, fid_cov)
 
         # Calibration Covariance
         # The order of the cal covariance is T90, T150, T220, E90, E150, E220
@@ -180,7 +182,7 @@ class SPT3GPrototype(InstallableLikelihood):
         calib_cov = calib_cov[np.ix_(cal_indices, cal_indices)]
         self.inv_calib_cov = np.linalg.inv(calib_cov)
         self.calib_params = np.array(
-            ["map{}cal{}".format(*p) for p in itertools.product(["T", "P"], [90, 150, 220])]
+            ["{}cal{}".format(*p) for p in itertools.product(["T", "E"], [90, 150, 220])]
         )[cal_indices]
         self.log.debug(f"Calibration parameters: {self.calib_params}")
 
@@ -196,6 +198,19 @@ class SPT3GPrototype(InstallableLikelihood):
         fg.SPT3G_2018_TTTEEE_Ini_Foregrounds()
 
         self.log.debug(f"SPT-3G 2018 TTTEEE: Likelihood successfully initialised!")
+
+
+    def _MakeCovariancePositiveDefinite( self, input_cov, fiducial_cov):
+        def is_pos_def(x):
+            return np.all(np.linalg.eigvals(x) > 0)
+
+        if is_pos_def( input_cov):
+            output_cov = input_cov
+        else:
+            cov_in_new_basis = ChangeBasisToFiducial(input_cov, fiducial_cov, True)
+            #MT: TO BE IMPLEMENTED
+
+        return output_cov
 
 
     def get_requirements(self):
@@ -232,9 +247,9 @@ class SPT3GPrototype(InstallableLikelihood):
                                     nu_eff_gal_cirrus[cross_frequency[0]], nu_eff_gal_cirrus[cross_frequency[1]],
                                     dls, dlfg)
                 
-                fg.AddCIBClustering( params.get("TT_CIB_Clustering_Amp"),
-                                     params.get("TT_CIB_Clustering_Alpha"),
-                                     params.get("TT_CIB_Clustering_Beta"),
+                fg.AddCIBClustering( params.get("TT_CIBClustering_Amp"),
+                                     params.get("TT_CIBClustering_Alpha"),
+                                     params.get("TT_CIBClustering_Beta"),
                                      nu_eff_DSFG[cross_spectrum[0]], nu_eff_DSFG[cross_spectrum[1]],
                                      params.get(f"TT_CIBClustering_decorr_{cross_spectrum[0]}"),
                                      params.get(f"TT_CIBClustering_decorr_{cross_spectrum[1]}"),
