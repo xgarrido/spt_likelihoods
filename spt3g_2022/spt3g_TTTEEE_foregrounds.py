@@ -36,6 +36,7 @@ def SPT3G_2018_TTTEEE_Ini_Foregrounds( SPT3G_windows_lmin, SPT3G_windows_lmax,
                                        nu_0_tSZ, full_tSZ_template, full_kSZ_template,
                                        etSZCosmologyScalingEnabled=False, ekSZCosmologyScalingEnabled=False):
 
+
   # Read in tSZ template and normalise
   # Cosmology scaling not supported
   tSZCosmologyScalingEnabled = False
@@ -207,7 +208,7 @@ def ApplySuperSampleLensing(kappa, Dl_theory, Dl_foregrounds):
   ssl_correction = ells*Cl_derivative # l*dCl/dl
   ssl_correction = ssl_correction * ells * (ells+1)/(2*np.pi) # Convert this part to Dl space already
   ssl_correction = ssl_correction + 2*Dl_theory # 2Cl - but already converted to Dl
-  ssl_correction = -1 * ssl_correction * kappa # -kappa
+  ssl_correction = - kappa * ssl_correction # -kappa
 
   # Apply the correction
   Dl_theory = Dl_theory + ssl_correction
@@ -229,7 +230,7 @@ def ApplyAberrationCorrection(ab_coeff, Dl_theory, Dl_foregrounds)
   # Calculate aberration correction
   # (In Cl space) AC = -coeff*dCl/dln(l) = -coeff*l*dCl/dl
   # where coeff contains the boost amplitude and direction (beta*<cos(theta)> in Jeong+ 13)
-  aberration_correction = -1*ab_coeff*Cl_derivative*ells
+  aberration_correction = - ab_coeff * Cl_derivative*ells
   aberration_correction = aberration_correction*ells*(ells+1)/(2*np.pi) # Convert to Dl
 
   # Apply correction
