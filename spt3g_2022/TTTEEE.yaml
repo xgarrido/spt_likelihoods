@@ -7,7 +7,7 @@ bandpower_filename: SPT3G_2018_TTTEEE_bandpowers.dat
 covariance_filename: SPT3G_2018_TTTEEE_covariance.dat
 
 # Fiducial Covariance file
-fiducial_covariance_filename: SPT3G_2018_TTTEEE_covariance.dat
+fiducial_covariance_filename: SPT3G_2018_TTTEEE_fiducial_covariance.dat
 
 # Beam covariance file
 beam_covariance_filename: SPT3G_2018_TTTEEE_beam_covariance.dat
@@ -28,6 +28,7 @@ spectra_to_fit:
   - 90_Ex90_E
   - 90_Tx150_T
   - 90_Tx150_E
+  - 90_Ex150_E
   - 90_Ex150_E
   - 90_Ex220_E
   - 90_Tx220_E
@@ -50,7 +51,6 @@ foregrounds:
   CIB_nu0: 150.0
   tSZ_nu0: 143.0
 
-
 params:
   kappa:
     prior:
@@ -59,7 +59,7 @@ params:
       scale: 0.00045
     ref: 0.0
     proposal: 0.00045
-    latex: \kappa
+    latex: \kappa  
 
   Tcal90:
     prior:
@@ -287,7 +287,7 @@ params:
     proposal: 0.4
     latex: A^{\rm{cirrus}}_{80}
 
-  TT_GalCirrus_alpha:
+  TT_GalCirrus_Alpha:
     prior:
       dist: norm
       loc: -2.53
@@ -296,7 +296,7 @@ params:
     proposal: 0.01
     latex: \alpha^{\rm{cirrus}}
 
-  TT_GalCirrus_beta:
+  TT_GalCirrus_Beta:
     prior:
       dist: norm
       loc: 1.48
@@ -314,11 +314,11 @@ params:
     proposal: 1.
     latex: A^{\rm{CIB}-cl}_{80}
 
-  TT_CIBClustering_alpha:
+  TT_CIBClustering_Alpha:
     value: 0.8
     latex: \alpha^{\rm{CIB}-cl}
 
-  TT_CIBClustering_beta:
+  TT_CIBClustering_Beta:
     prior:
       dist: norm
       loc: 2.26
@@ -329,15 +329,15 @@ params:
 
   TT_CIBClustering_decorr_90:
     value: 1.
-    latex: \xi^{\rm{CIB}-decorr}
+    latex: \xi^{\rm{CIB}-decorr,90}
 
   TT_CIBClustering_decorr_150:
     value: 1.
-    latex: \xi^{\rm{CIB}-decorr}
+    latex: \xi^{\rm{CIB}-decorr,150}
 
   TT_CIBClustering_decorr_220:
     value: 1.
-    latex: \xi^{\rm{CIB}-decorr}
+    latex: \xi^{\rm{CIB}-decorr,220}
 
   TT_tSZ_Amp:
     prior:

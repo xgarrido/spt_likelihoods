@@ -72,7 +72,7 @@ class SPT3GPrototype(InstallableLikelihood):
     cov_eval_cut_threshold: Optional[float] = 0.2
     cov_eval_large_number_replacement: Optional[float] = 1e3
     beam_cov_scale: Optional[float] = 1.0
-    aberration_coefficient: Optional[float] = 0.0
+    aberration_coefficient: Optional[float] = -0.0004826
 
     def initialize(self):
         # Set path to data
@@ -102,7 +102,6 @@ class SPT3GPrototype(InstallableLikelihood):
         for b in range(self.N_s):
             if self.spec_bin_min[b] <= 0 or self.spec_bin_max[b] >= 45:
                 raise LoggedError(self.log, f"SPT-3G 2018 TTTEEE: bad ell range selection for spectrum: {self.spectra_to_fit[b]}")
-        self.N_b = np.array(self.spec_bin_max) - np.array(self.spec_bin_min) + 1
 
         # Check if a late crop is requested and read in the mask if necessary
         # MT: Not Implemented 
@@ -132,7 +131,7 @@ class SPT3GPrototype(InstallableLikelihood):
 
         # Covariance Matrix
         bp_cov  = np.loadtxt(os.path.join(self.data_folder, self.covariance_filename))
-        fid_cov = np.loadtxt(os.path.join(self.data_folder, self.fiducial_covariance_filename))
+#        fid_cov = np.loadtxt(os.path.join(self.data_folder, self.fiducial_covariance_filename))
 
         # Beam Covariance Matrix
         self.beam_cov = np.loadtxt(os.path.join(self.data_folder, self.beam_covariance_filename))
@@ -154,20 +153,26 @@ class SPT3GPrototype(InstallableLikelihood):
 
         # Compute spectra/cov indices given spectra to fit
         vec_indices = np.array([default_spectra_list.index(spec) for spec in self.spectra_to_fit])
-        self.bandpowers = self.bandpowers[vec_indices].flatten()
+        self.bandpowers = self.bandpowers[vec_indices]
         self.windows = self.windows[:, vec_indices, :]
+        self.N_b = np.array(self.spec_bin_max) - np.array(self.spec_bin_min) + 1
         cov_indices = np.concatenate(
-            [np.arange(sum(self.N_b[:i]), sum(self.N_b[:i+1]), dtype=int) for i in vec_indices]
+            [np.arange(i*self.bin_max+self.spec_bin_min[i]-1, i*self.bin_max+self.spec_bin_max[i], dtype=int) for i in vec_indices]
         )
+        self.spec_bin_min = np.array(self.spec_bin_min)[vec_indices]
+        self.spec_bin_max = np.array(self.spec_bin_max)[vec_indices]
+        self.N_b = self.N_b[vec_indices]
+        
         # Select spectra/cov elements given indices
-        bp_cov = bp_cov[np.ix_(cov_indices, cov_indices)]
-        fid_cov = fid_cov[np.ix_(cov_indices, cov_indices)]
+        self.bp_cov = bp_cov[np.ix_(cov_indices, cov_indices)]
+#        self.fid_cov = fid_cov[np.ix_(cov_indices, cov_indices)]
         self.beam_cov = self.beam_cov[np.ix_(cov_indices, cov_indices)]
         self.log.debug(f"Selected bp indices: {vec_indices}")
-        self.log.debug(f"Selected cov indices: {cov_indices}")
+        self.log.debug(f"Selected cov indices {len(cov_indices)}: {cov_indices}")
 
         # Ensure covariance is positive definite
-        self.bp_cov_posdef = self._MakeCovariancePositiveDefinite(bp_cov, fid_cov)
+#        self.bp_cov_posdef = self._MakeCovariancePositiveDefinite(self.bp_cov, self.fid_cov)
+        self.bp_cov_posdef = self.bp_cov
 
         # Calibration Covariance
         # The order of the cal covariance is T90, T150, T220, E90, E150, E220
@@ -187,7 +192,12 @@ class SPT3GPrototype(InstallableLikelihood):
 
         # Effective band centres
         nu_eff = np.loadtxt(os.path.join(self.data_folder, self.nu_eff_filename))
-        nu_eff_gal_cirrus, nu_eff_pol_gal_dust, nu_eff_DSFG, bu_eff_radio, nu_eff_tSZ = nu_eff
+#        self.nu_eff_gal_cirrus, self.nu_eff_pol_gal_dust, self.nu_eff_DSFG, self.nu_eff_radio, self.nu_eff_tSZ = nu_eff
+        self.nu_eff_gal_cirrus   = dict( zip( ['90','150','220'], nu_eff[0]))
+        self.nu_eff_pol_gal_dust = dict( zip( ['90','150','220'], nu_eff[1]))
+        self.nu_eff_DSFG         = dict( zip( ['90','150','220'], nu_eff[2]))
+        self.nu_eff_radio        = dict( zip( ['90','150','220'], nu_eff[3]))
+        self.nu_eff_tSZ          = dict( zip( ['90','150','220'], nu_eff[4]))
 
         self.lmin = self.windows_lmin
         self.lmax = self.windows_lmax + 1  # to match fortran convention
@@ -202,13 +212,13 @@ class SPT3GPrototype(InstallableLikelihood):
     def _MakeCovariancePositiveDefinite( self, input_cov, fiducial_cov):
         # Checks if a matrix is positive definite
         def is_pos_def(x):
-            return np.all(np.linalg.eigvals(x) > 0)
+            return np.all(np.linalg.eigvalsh(x) > 0)
 
         # Changes the basis of the matrix using the eigenvectors of another
         # Goes either fowards or backwards
         def ChangeBasisToFiducial( cov_input, cov_fiducial, forward):
             # Calculate the eigenvectors
-            cov_eigenvalues,cov_eigenvectors = np.linalg.eig( cov_input)
+            cov_eigenvalues,cov_eigenvectors = np.linalg.eigh( cov_input)
             
             # Get the inverse of the eigenvectors matrix
             cov_eigenvectors_inv = np.linalg.inv( cov_eigenvectors)
@@ -224,10 +234,10 @@ class SPT3GPrototype(InstallableLikelihood):
         # Fix negative eigenvalues of a matrix by setting anything below a threshold to some fixed value
         def FixEvalsOfMatrix( cov_input):
             # Calculate the eigenvectors
-            cov_eigenvalues,cov_eigenvectors = np.linalg.eig( cov_input)
+            cov_eigenvalues,cov_eigenvectors = np.linalg.eigh( cov_input)
 
             # Set negative eigenvalues to a large positive number
-            cov_eigenvalues[cov_eigenvalues < self.cov_eval_cut_threshold] = cov_eval_large_number_replacement
+            cov_eigenvalues[cov_eigenvalues < self.cov_eval_cut_threshold] = self.cov_eval_large_number_replacement
 
             # Get the inverse of the eigenvectors matrix
             cov_eigenvectors_inv = np.linalg.inv( cov_eigenvectors)
@@ -264,107 +274,118 @@ class SPT3GPrototype(InstallableLikelihood):
 
     def loglike(self, dl_cmb, **params):
 
-        lmin, lmax = self.lmin, self.lmax
-        ells = np.arange(lmin, lmax + 2)
+        ells = np.arange(self.lmin, self.lmax + 1)
         fg = self.fg
 
-        dbs = np.empty_like(self.bandpowers)
-        dlfg = np.zeros( fg.N_fg_max, SPT3G_windows_lmax - SPT3G_windows_lmin + 1)
+        db_model = np.empty_like(self.bandpowers)
+        dlfg = []
         for i, (cross_spectrum, cross_frequency) in enumerate(
             zip(self.cross_spectra, self.cross_frequencies)
         ):
 
             # Add CMB
-            dls = dl_cmb[cross_spectrum][self.ells]
+            self.log.debug( f"{cross_spectrum} Add CMB spectrum")
+            dl_model = dl_cmb[cross_spectrum][self.ells]
 
-            fg.ApplySuperSampleLensing( params.get("kappa"),
-                                        dls, dlfg)
+            self.log.debug( f"{cross_spectrum} Apply Super Sample Lensing")
+            dlfg.append( fg.ApplySuperSampleLensing( params.get("kappa"), dl_model))
 
-            fg.ApplyAberrationCorrection( params.get("aberration_coefficient"),
-                                          dls, dlfg)
+            self.log.debug( f"{cross_spectrum} Apply Aberration Correction")
+            dlfg.append( fg.ApplyAberrationCorrection( self.aberration_coefficient, dl_model))
 
             if cross_spectrum == "TT":
-                fg.AddPoissonPower( params.get(f"{cross_spectrum}_Poisson_{cross_frequency[0]}x{cross_frequency[1]}"),
-                                    dls, dlfg)
+                self.log.debug( f"{cross_spectrum} Add Poisson Power")
+                dlfg.append( fg.PoissonPower( params.get(f"{cross_spectrum}_Poisson_{cross_frequency[0]}x{cross_frequency[1]}")))
 
-                fg.AddGalacticDust( params.get("TT_GalCirrus_Amp"),
-                                    params.get("TT_GalCirrus_Alpha"),
-                                    params.get("TT_GalCirrus_Beta"),
-                                    nu_eff_gal_cirrus[cross_frequency[0]], nu_eff_gal_cirrus[cross_frequency[1]],
-                                    dls, dlfg)
+                self.log.debug( f"{cross_spectrum} Add Galactic Dust")
+                dlfg.append( fg.GalacticDust( params.get("TT_GalCirrus_Amp"),
+                                              params.get("TT_GalCirrus_Alpha"),
+                                              params.get("TT_GalCirrus_Beta"),
+                                              self.nu_eff_gal_cirrus[cross_frequency[0]], self.nu_eff_gal_cirrus[cross_frequency[1]]))
                 
-                fg.AddCIBClustering( params.get("TT_CIBClustering_Amp"),
-                                     params.get("TT_CIBClustering_Alpha"),
-                                     params.get("TT_CIBClustering_Beta"),
-                                     nu_eff_DSFG[cross_spectrum[0]], nu_eff_DSFG[cross_spectrum[1]],
-                                     params.get(f"TT_CIBClustering_decorr_{cross_spectrum[0]}"),
-                                     params.get(f"TT_CIBClustering_decorr_{cross_spectrum[1]}"),
-                                     dls, dlfg)
+                self.log.debug( f"{cross_spectrum} Add CIB clustering")
+                dlfg.append( fg.CIBClustering( params.get("TT_CIBClustering_Amp"),
+                                               params.get("TT_CIBClustering_Alpha"),
+                                               params.get("TT_CIBClustering_Beta"),
+                                               self.nu_eff_DSFG[cross_frequency[0]], self.nu_eff_DSFG[cross_frequency[1]],
+                                               params.get(f"TT_CIBClustering_decorr_{cross_frequency[0]}"),
+                                               params.get(f"TT_CIBClustering_decorr_{cross_frequency[1]}")))
 
-                fg.AddtSZ( params.get( "TT_tSZ_Amp"),
-                           nu_eff_tSZ[cross_spectrum[0]], nu_eff_tSZ[cross_spectrum[1]],
-                           _, _, _,
-                           dls, dlfg)
+                self.log.debug( f"{cross_spectrum} Add tSZ")
+                dlfg.append( fg.tSZ( params.get( "TT_tSZ_Amp"),
+                                        self.nu_eff_tSZ[cross_frequency[0]], self.nu_eff_tSZ[cross_frequency[1]]))
 
-                fg.AddtSZCIBCorrelation( params.get("TT_tSZ_CIB_corr"),
-                                         params.get("TT_tSZ_Amp"),
-                                         params.get("TT_CIB_Clustering_Amp"),
-                                         params.get("TT_CIB_Clustering_Alpha"),
-                                         params.get("TT_CIB_Clustering_Beta"),
-                                         params.get(f"TT_CIBClustering_decorr_{cross_spectrum[0]}"),
-                                         params.get(f"TT_CIBClustering_decorr_{cross_spectrum[1]}"),
-                                         nu_eff_DSFG[cross_spectrum[0]], nu_eff_DSFG[cross_spectrum[1]],
-                                         nu_eff_tSZ[cross_spectrum[0]], nu_eff_tSZ[cross_spectrum[1]],
-                                         _, _, _,
-                                         dls, dlfg)
+                self.log.debug( f"{cross_spectrum} Add tSZxCIB")
+                dlfg.append( fg.tSZCIBCorrelation( params.get("TT_tSZ_CIB_corr"),
+                                                   params.get("TT_tSZ_Amp"),
+                                                   params.get("TT_CIBClustering_Amp"),
+                                                   params.get("TT_CIBClustering_Alpha"),
+                                                   params.get("TT_CIBClustering_Beta"),
+                                                   params.get(f"TT_CIBClustering_decorr_{cross_frequency[0]}"),
+                                                   params.get(f"TT_CIBClustering_decorr_{cross_frequency[1]}"),
+                                                   self.nu_eff_DSFG[cross_frequency[0]], self.nu_eff_DSFG[cross_frequency[1]],
+                                                   self.nu_eff_tSZ[cross_frequency[0]], self.nu_eff_tSZ[cross_frequency[1]]))
                 
-                fg.addkSZ( params.get("TT_kSZ_Amp"),
-                           _, _, _, _, _, _,
-                           dls, dlfg)
+                self.log.debug( f"{cross_spectrum} Add kSZ")
+                dlfg.append( fg.kSZ( params.get("TT_kSZ_Amp")))
 
             elif cross_spectrum == "TE":
-                fg.AddGalacticDust( params.get("TE_PolGalDust_Amp"),
-                                    params.get("TE_PolGalDust_Alpha"),
-                                    params.get("TE_PolGalDust_Beta"),
-                                    nu_eff_gal_cirrus[cross_frequency[0]], nu_eff_gal_cirrus[cross_frequency[1]],
-                                    dls, dlfg)
+                dlfg.append( fg.GalacticDust( params.get("TE_PolGalDust_Amp"),
+                                              params.get("TE_PolGalDust_Alpha"),
+                                              params.get("TE_PolGalDust_Beta"),
+                                              self.nu_eff_gal_cirrus[cross_frequency[0]], self.nu_eff_gal_cirrus[cross_frequency[1]]))
                 
             elif cross_spectrum == "EE":
-                fg.AddPoissonPower( params.get(f"{cross_spectrum}_Poisson_{cross_frequency[0]}x{cross_frequency[1]}"),
-                                    dls, dlfg)
+                dlfg.append( fg.PoissonPower( params.get(f"{cross_spectrum}_Poisson_{cross_frequency[0]}x{cross_frequency[1]}")))
                 
-                fg.AddGalacticDust( params.get("EE_PolGalDust_Amp"),
-                                    params.get("EE_PolGalDust_Alpha"),
-                                    params.get("EE_PolGalDust_Beta"),
-                                    nu_eff_gal_cirrus[cross_frequency[0]], nu_eff_gal_cirrus[cross_frequency[1]],
-                                    dls, dlfg)
+                dlfg.append( fg.GalacticDust( params.get("EE_PolGalDust_Amp"),
+                                              params.get("EE_PolGalDust_Alpha"),
+                                              params.get("EE_PolGalDust_Beta"),
+                                              self.nu_eff_gal_cirrus[cross_frequency[0]], self.nu_eff_gal_cirrus[cross_frequency[1]]))
 
-            fg.ApplyCalibration( params.get(f"{cross_spectrum[0]}cal{cross_frequency[0]}"),
-                                 params.get(f"{cross_spectrum[1]}cal{cross_frequency[1]}"),
-                                 params.get(f"{cross_spectrum[0]}cal{cross_frequency[1]}"),
-                                 params.get(f"{cross_spectrum[1]}cal{cross_frequency[0]}"),
-                                 dls, dlfg)
+            self.log.debug( f"{cross_spectrum} Apply Calibration")
+            cal = fg.ApplyCalibration( params.get(f"{cross_spectrum[0]}cal{cross_frequency[0]}"),
+                                       params.get(f"{cross_spectrum[1]}cal{cross_frequency[1]}"),
+                                       params.get(f"{cross_spectrum[0]}cal{cross_frequency[1]}"),
+                                       params.get(f"{cross_spectrum[1]}cal{cross_frequency[0]}"))
+
+            dl_model = (dl_model + np.sum(dlfg,0))/cal
 
             # Binning via window and concatenate
-            dbs[sum(self.N_b[:i]):sum(self.N_b[:i+1])] = self.windows[self.spec_bin_min[i]:self.spec_bin_max[i], i, :] @ dls
+            self.log.debug( f"{cross_spectrum} Bin Spectrum")
+            db_model[i] = self.windows[:, i, :] @ dl_model
 
-        # Calculate difference of theory and data
-        delta_data_model = self.bandpowers - dbs
-            
+        # Select bins and calculate difference of theory and data
+        self.log.debug( "Compute residuals")
+        delta_data_model = np.concatenate(
+            [ (self.bandpowers[i] - db_model[i])[self.spec_bin_min[i]-1:self.spec_bin_max[i]] for i in range(len(self.N_b)) ]
+            )
+        dbs = np.concatenate(
+            [ db_model[i][self.spec_bin_min[i]-1:self.spec_bin_max[i]] for i in range(len(self.N_b)) ]
+            )
+        print( delta_data_model)
+        
         # Add the beam coariance to the band power covariance
+        self.log.debug( "Add beam cov")
         cov_for_logl = self.bp_cov_posdef + self.beam_cov * np.outer(dbs, dbs)
+#        print(np.diag(self.bp_cov_posdef))
+#        print(np.diag(cov_for_logl))
+        print( delta_data_model**2 / np.diag(cov_for_logl))
+        print( np.sum(delta_data_model**2 / np.diag(cov_for_logl)))
 
         # Final crop to ignore select band powers
         # MT: not implemented
-
+        
         # Compute chisq
-        chi2, slogdet = self._gaussian_loglike(cov_for_logl, delta_data_model, cholesky=True)
+        self.log.debug( "Compute chi2")
+        chi2, slogdet = self._gaussian_loglike(cov_for_logl, delta_data_model, cholesky=False)
 
         # Apply calibration prior
-        delta_cal = np.array([params_values.get(p)-1. for p in self.calib_params])
+        self.log.debug( "Apply calibration prior")
+        delta_cal = np.array([params.get(p)-1. for p in self.calib_params])
         cal_prior = delta_cal @ self.inv_calib_cov @ delta_cal
 
-        self.log.debug(f"SPT3G X²/ndof = {chi2:.2f}/{len(delta_data_model)}")
+        self.log.debug(f"SPT3G chi2/ndof = {chi2:.2f}/{len(delta_data_model)}")
         self.log.debug(f"SPT3G detcov = {slogdet:.2f}")
         self.log.debug(f"SPT3G cal. prior = {cal_prior:.2f}")
         return -0.5 * (chi2 + slogdet + cal_prior)
@@ -397,7 +418,7 @@ class SPT3GPrototype(InstallableLikelihood):
             chi2 = res @ np.linalg.inv(dlcov) @ res
             sign, slogdet = np.linalg.slogdet(dlcov)
 
-        return chi2 / 2.0, slogdet / 2.0
+        return chi2, slogdet
 
 class TTTEEE(SPT3GPrototype):
     r"""
