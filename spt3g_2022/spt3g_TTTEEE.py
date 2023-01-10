@@ -79,7 +79,7 @@ class SPT3GPrototype(InstallableLikelihood):
         if (not getattr(self, "path", None)) and (not getattr(self, packages_path_input, None)):
             raise LoggedError(
                 self.log,
-                "No path given to SPTPol data. Set the likelihood property 'path' or "
+                "No path given to SPT3G data. Set the likelihood property 'path' or "
                 f"the common property '{packages_path_input}'.",
             )
         # If no path specified, use the modules path
@@ -98,8 +98,7 @@ class SPT3GPrototype(InstallableLikelihood):
         lkl_name = self.__class__.__name__.lower()
         self.use_cl = [lkl_name[i : i + 2] for i in range(0, len(lkl_name), 2)]
 
-        self.N_s = len(self.spectra_to_fit)
-        for b in range(self.N_s):
+        for b in range(len(self.spec_bin_min)):
             if self.spec_bin_min[b] <= 0 or self.spec_bin_max[b] >= 45:
                 raise LoggedError(self.log, f"SPT-3G 2018 TTTEEE: bad ell range selection for spectrum: {self.spectra_to_fit[b]}")
 
@@ -131,7 +130,7 @@ class SPT3GPrototype(InstallableLikelihood):
 
         # Covariance Matrix
         bp_cov  = np.loadtxt(os.path.join(self.data_folder, self.covariance_filename))
-#        fid_cov = np.loadtxt(os.path.join(self.data_folder, self.fiducial_covariance_filename))
+        fid_cov = np.loadtxt(os.path.join(self.data_folder, self.fiducial_covariance_filename))
 
         # Beam Covariance Matrix
         self.beam_cov = np.loadtxt(os.path.join(self.data_folder, self.beam_covariance_filename))
@@ -155,24 +154,27 @@ class SPT3GPrototype(InstallableLikelihood):
         vec_indices = np.array([default_spectra_list.index(spec) for spec in self.spectra_to_fit])
         self.bandpowers = self.bandpowers[vec_indices]
         self.windows = self.windows[:, vec_indices, :]
-        self.N_b = np.array(self.spec_bin_max) - np.array(self.spec_bin_min) + 1
-        cov_indices = np.concatenate(
-            [np.arange(i*self.bin_max+self.spec_bin_min[i]-1, i*self.bin_max+self.spec_bin_max[i], dtype=int) for i in vec_indices]
-        )
         self.spec_bin_min = np.array(self.spec_bin_min)[vec_indices]
         self.spec_bin_max = np.array(self.spec_bin_max)[vec_indices]
-        self.N_b = self.N_b[vec_indices]
+        self.N_b_total = sum(self.spec_bin_max - self.spec_bin_min + 1) #total nb of bins
+        self.N_s = len(vec_indices) #nb of spectra
+        cov_indices = np.concatenate(
+            [np.arange(i*self.bin_max+self.spec_bin_min[i]-1, i*self.bin_max+self.spec_bin_max[i], dtype=int) for i in range(self.N_s)]
+        )
+        if len(cov_indices) != self.N_b_total:
+            raise LoggedError( self.log,
+                f"Total number of bin is not consistent {len(cov_indices)} (expected {self.N_b_total})")
         
         # Select spectra/cov elements given indices
+        self.log.debug(f"Selected bp ({self.N_s}): {vec_indices}")
+        self.log.debug(f"Selected cov indices ({self.N_b_total}): {cov_indices}")
         self.bp_cov = bp_cov[np.ix_(cov_indices, cov_indices)]
-#        self.fid_cov = fid_cov[np.ix_(cov_indices, cov_indices)]
+        self.fid_cov = fid_cov[np.ix_(cov_indices, cov_indices)]
         self.beam_cov = self.beam_cov[np.ix_(cov_indices, cov_indices)]
-        self.log.debug(f"Selected bp indices: {vec_indices}")
-        self.log.debug(f"Selected cov indices {len(cov_indices)}: {cov_indices}")
 
         # Ensure covariance is positive definite
-#        self.bp_cov_posdef = self._MakeCovariancePositiveDefinite(self.bp_cov, self.fid_cov)
-        self.bp_cov_posdef = self.bp_cov
+        self.bp_cov_posdef = self._MakeCovariancePositiveDefinite(self.bp_cov, self.fid_cov)
+#        self.bp_cov_posdef = self.bp_cov
 
         # Calibration Covariance
         # The order of the cal covariance is T90, T150, T220, E90, E150, E220
@@ -218,7 +220,7 @@ class SPT3GPrototype(InstallableLikelihood):
         # Goes either fowards or backwards
         def ChangeBasisToFiducial( cov_input, cov_fiducial, forward):
             # Calculate the eigenvectors
-            cov_eigenvalues,cov_eigenvectors = np.linalg.eigh( cov_input)
+            cov_eigenvalues,cov_eigenvectors = np.linalg.eigh( cov_fiducial)
             
             # Get the inverse of the eigenvectors matrix
             cov_eigenvectors_inv = np.linalg.inv( cov_eigenvectors)
@@ -358,10 +360,10 @@ class SPT3GPrototype(InstallableLikelihood):
         # Select bins and calculate difference of theory and data
         self.log.debug( "Compute residuals")
         delta_data_model = np.concatenate(
-            [ (self.bandpowers[i] - db_model[i])[self.spec_bin_min[i]-1:self.spec_bin_max[i]] for i in range(len(self.N_b)) ]
+            [ (self.bandpowers[i] - db_model[i])[self.spec_bin_min[i]-1:self.spec_bin_max[i]] for i in range(self.N_s) ]
             )
         dbs = np.concatenate(
-            [ db_model[i][self.spec_bin_min[i]-1:self.spec_bin_max[i]] for i in range(len(self.N_b)) ]
+            [ db_model[i][self.spec_bin_min[i]-1:self.spec_bin_max[i]] for i in range(self.N_s) ]
             )
         print( delta_data_model)
         
@@ -378,7 +380,7 @@ class SPT3GPrototype(InstallableLikelihood):
         
         # Compute chisq
         self.log.debug( "Compute chi2")
-        chi2, slogdet = self._gaussian_loglike(cov_for_logl, delta_data_model, cholesky=False)
+        chi2, slogdet = self._gaussian_loglike(cov_for_logl, delta_data_model, cholesky=True)
 
         # Apply calibration prior
         self.log.debug( "Apply calibration prior")
