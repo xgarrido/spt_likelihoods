@@ -18,7 +18,7 @@ from cobaya.conventions import packages_path_input
 from cobaya.likelihoods.base_classes import InstallableLikelihood
 from cobaya.log import LoggedError
 
-from . import spt3g_TTTEEE_foregrounds as spt3g_fg
+from . import spt3g_2022_foregrounds as spt3g_fg
 
 default_spectra_list = [
     "90_Tx90_T",
@@ -48,7 +48,7 @@ class SPT3GPrototype(InstallableLikelihood):
         "data_path": "spt3g_2018",
     }
 
-    bibtex_file = "spt3g_TTTEEE.bibtex"
+    bibtex_file = "spt3g_2022.bibtex"
 
     bin_min: Optional[int] = 1
     bin_max: Optional[int] = 44
@@ -408,9 +408,32 @@ class SPT3GPrototype(InstallableLikelihood):
 
         return chi2, slogdet
 
+
+
 class TTTEEE(SPT3GPrototype):
     r"""
     Likelihood for Balkenhold et al. 2022
     SPT-3G Y1 95, 150, 220GHz bandpowers, l=300-3000, TT/TE/EE
+    Written by Lennart Balkenhol
+    """
+
+class TT(SPT3GPrototype):
+    r"""
+    Likelihood for Balkenhold et al. 2022
+    SPT-3G Y1 95, 150, 220GHz bandpowers, l=300-3000, TT
+    Written by Lennart Balkenhol
+    """
+
+class TE(SPT3GPrototype):
+    r"""
+    Likelihood for Balkenhold et al. 2022
+    SPT-3G Y1 95, 150, 220GHz bandpowers, l=300-3000, TE
+    Written by Lennart Balkenhol
+    """
+
+class EE(SPT3GPrototype):
+    r"""
+    Likelihood for Balkenhold et al. 2022
+    SPT-3G Y1 95, 150, 220GHz bandpowers, l=300-3000, EE
     Written by Lennart Balkenhol
     """
