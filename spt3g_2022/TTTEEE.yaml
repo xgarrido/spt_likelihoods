@@ -323,8 +323,8 @@ params:
       dist: norm
       loc: 2.26
       scale: 0.38
-    ref: 0.1
-    proposal: 1.85
+    ref: 1.85
+    proposal: 0.1
     latex: \beta^{\rm{CIB}-cl}
 
   TT_CIBClustering_decorr_90:

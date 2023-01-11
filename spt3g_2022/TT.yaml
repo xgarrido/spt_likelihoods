@@ -93,7 +93,7 @@ params:
     latex: D_{3000}^{\rm{PS,EE};90x90}
 
   EE_Poisson_90x150:
-    value:: 0.0177
+    value: 0.0177
     latex: D_{3000}^{\rm{PS,EE};90x150}
 
   EE_Poisson_90x220:
@@ -236,8 +236,8 @@ params:
       dist: norm
       loc: 2.26
       scale: 0.38
-    ref: 0.1
-    proposal: 1.85
+    ref: 1.85
+    proposal: 0.1
     latex: \beta^{\rm{CIB}-cl}
 
   TT_CIBClustering_decorr_90:

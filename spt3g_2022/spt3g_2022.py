@@ -153,15 +153,15 @@ class SPT3GPrototype(InstallableLikelihood):
 
         # Compute spectra/cov indices given spectra to fit
         vec_indices = np.array([default_spectra_list.index(spec) for spec in self.spectra_to_fit])
+        cov_indices = np.concatenate(
+            [np.arange(i*self.bin_max+self.spec_bin_min[i]-1, i*self.bin_max+self.spec_bin_max[i], dtype=int) for i in vec_indices]
+        )
         self.bandpowers = self.bandpowers[vec_indices]
         self.windows = self.windows[:, vec_indices, :]
         self.spec_bin_min = np.array(self.spec_bin_min)[vec_indices]
         self.spec_bin_max = np.array(self.spec_bin_max)[vec_indices]
         self.N_b_total = sum(self.spec_bin_max - self.spec_bin_min + 1) #total nb of bins
         self.N_s = len(vec_indices) #nb of spectra
-        cov_indices = np.concatenate(
-            [np.arange(i*self.bin_max+self.spec_bin_min[i]-1, i*self.bin_max+self.spec_bin_max[i], dtype=int) for i in range(self.N_s)]
-        )
         if len(cov_indices) != self.N_b_total:
             raise LoggedError( self.log,
                 f"Total number of bin is not consistent {len(cov_indices)} (expected {self.N_b_total})")
@@ -343,7 +343,7 @@ class SPT3GPrototype(InstallableLikelihood):
                                        params.get(f"{cross_spectrum[1]}cal{cross_frequency[0]}"))
 
             dl_model = (dl_model + np.sum(dlfg,0))/cal
-
+            
             # Binning via window and concatenate
             db_model[i] = self.windows[:, i, :] @ dl_model
 
@@ -355,7 +355,8 @@ class SPT3GPrototype(InstallableLikelihood):
         dbs = np.concatenate(
             [ db_model[i][self.spec_bin_min[i]-1:self.spec_bin_max[i]] for i in range(self.N_s) ]
             )
-#        print( delta_data_model)
+#        print( self.bandpowers[0])
+#        print( db_model[0])
         
         # Add the beam coariance to the band power covariance
         self.log.debug( "Add beam cov")

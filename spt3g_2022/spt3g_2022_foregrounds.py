@@ -30,8 +30,6 @@ class SPT3G_2018_TTTEEE_Ini_Foregrounds(HasLogger):
 
   # Indices specifying order of fg components in output array
   N_fg_max = 9
-  iOutCal = 1; iOutAberration = 2; iOutSSL = 3; iOutGalDust = 4; iOutPoisson = 5
-  iOutCIBClustering = 6; iOuttSZ = 7; iOuttSZCIB = 8; iOutkSZ = 9 # TT exclusive foregrounds
 
   def __init__( self,
                 data_folder="",
