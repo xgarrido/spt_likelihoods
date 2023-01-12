@@ -112,8 +112,8 @@ class SPT3GPrototype(InstallableLikelihood):
         self.frequencies = sorted(
             {float(freq) for freqs in self.cross_frequencies for freq in freqs}
         )
-        self.log.debug(f"Using {self.cross_frequencies} cross-frequencies")
-        self.log.debug(f"Using {self.cross_spectra} cross-spectra")
+        self.log.debug(f"Using cross-frequencies {self.cross_frequencies}")
+        self.log.debug(f"Using cross-spectra {self.cross_spectra}")
         self.log.debug(f"Using {self.frequencies} GHz frequency bands")
 
         # Determine how many spectra are TT vs TE vs EE and the total number of bins we are fitting
@@ -165,6 +165,8 @@ class SPT3GPrototype(InstallableLikelihood):
         if len(cov_indices) != self.N_b_total:
             raise LoggedError( self.log,
                 f"Total number of bin is not consistent {len(cov_indices)} (expected {self.N_b_total})")
+        for i in range( self.N_s):
+            self.log.debug( "\t {:>3}x{:>3}-{}: [{:2d}-{:2d}]".format(*self.cross_frequencies[i],self.cross_spectra[i],self.spec_bin_min[i],self.spec_bin_max[i]))
         
         # Select spectra/cov elements given indices
         self.log.debug(f"Selected bp ({self.N_s}): {vec_indices}")
@@ -281,7 +283,6 @@ class SPT3GPrototype(InstallableLikelihood):
         fg = self.fg
 
         db_model = np.empty_like(self.bandpowers)
-        dlfg = []
         for i, (cross_spectrum, cross_frequency) in enumerate(
             zip(self.cross_spectra, self.cross_frequencies)
         ):
@@ -289,13 +290,14 @@ class SPT3GPrototype(InstallableLikelihood):
             # Add CMB
             dl_model = dl_cmb[cross_spectrum][self.ells]
 
+            dlfg = []
             dlfg.append( fg.ApplySuperSampleLensing( params.get("kappa"), dl_model))
 
-            dlfg.append( fg.ApplyAberrationCorrection( self.aberration_coefficient, dl_model))
+            dlfg.append( fg.ApplyAberrationCorrection( self.aberration_coefficient, dl_model+dlfg[0]))
 
             if cross_spectrum == "TT":
                 dlfg.append( fg.PoissonPower( params.get(f"{cross_spectrum}_Poisson_{cross_frequency[0]}x{cross_frequency[1]}")))
-
+                
                 dlfg.append( fg.GalacticDust( params.get("TT_GalCirrus_Amp"),
                                               params.get("TT_GalCirrus_Alpha"),
                                               params.get("TT_GalCirrus_Beta"),
@@ -327,7 +329,7 @@ class SPT3GPrototype(InstallableLikelihood):
                 dlfg.append( fg.GalacticDust( params.get("TE_PolGalDust_Amp"),
                                               params.get("TE_PolGalDust_Alpha"),
                                               params.get("TE_PolGalDust_Beta"),
-                                              self.nu_eff_gal_cirrus[cross_frequency[0]], self.nu_eff_gal_cirrus[cross_frequency[1]]))
+                                              self.nu_eff_pol_gal_dust[cross_frequency[0]], self.nu_eff_pol_gal_dust[cross_frequency[1]]))
                 
             elif cross_spectrum == "EE":
                 dlfg.append( fg.PoissonPower( params.get(f"{cross_spectrum}_Poisson_{cross_frequency[0]}x{cross_frequency[1]}")))
@@ -335,7 +337,7 @@ class SPT3GPrototype(InstallableLikelihood):
                 dlfg.append( fg.GalacticDust( params.get("EE_PolGalDust_Amp"),
                                               params.get("EE_PolGalDust_Alpha"),
                                               params.get("EE_PolGalDust_Beta"),
-                                              self.nu_eff_gal_cirrus[cross_frequency[0]], self.nu_eff_gal_cirrus[cross_frequency[1]]))
+                                              self.nu_eff_pol_gal_dust[cross_frequency[0]], self.nu_eff_pol_gal_dust[cross_frequency[1]]))
 
             cal = fg.ApplyCalibration( params.get(f"{cross_spectrum[0]}cal{cross_frequency[0]}"),
                                        params.get(f"{cross_spectrum[1]}cal{cross_frequency[1]}"),
@@ -355,13 +357,11 @@ class SPT3GPrototype(InstallableLikelihood):
         dbs = np.concatenate(
             [ db_model[i][self.spec_bin_min[i]-1:self.spec_bin_max[i]] for i in range(self.N_s) ]
             )
-#        print( self.bandpowers[0])
-#        print( db_model[0])
         
         # Add the beam coariance to the band power covariance
         self.log.debug( "Add beam cov")
         cov_for_logl = self.bp_cov_posdef + self.beam_cov * np.outer(dbs, dbs)
-
+        
         # Final crop to ignore select band powers
         # MT: not implemented
         
@@ -374,9 +374,9 @@ class SPT3GPrototype(InstallableLikelihood):
         delta_cal = np.array([params.get(p)-1. for p in self.calib_params])
         cal_prior = delta_cal @ self.inv_calib_cov @ delta_cal
 
-        self.log.debug(f"SPT3G chi2/ndof = {chi2:.2f}/{len(delta_data_model)}")
-        self.log.debug(f"SPT3G detcov = {slogdet:.2f}")
-        self.log.debug(f"SPT3G cal. prior = {cal_prior:.2f}")
+        self.log.debug(f"SPT3G chi2/ndof = {chi2:.14f}/{len(delta_data_model)}")
+        self.log.debug(f"SPT3G detcov = {slogdet:.14f}")
+        self.log.debug(f"SPT3G cal. prior = {cal_prior:.14f}")
         return -0.5 * (chi2 + slogdet + cal_prior)
 
     def logp(self, **data_params):
@@ -386,7 +386,7 @@ class SPT3GPrototype(InstallableLikelihood):
 
     def _gaussian_loglike(self, dlcov, res, cholesky=True):
         """
-        Returns -Log Likelihood for Gaussian: (d^T Cov^{-1} d + log|Cov|)/2
+        Returns -Log Likelihood for Gaussian: (d^T Cov^{-1} d + log|Cov|)
         """
 
         if cholesky:

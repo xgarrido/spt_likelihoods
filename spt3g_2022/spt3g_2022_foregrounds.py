@@ -77,7 +77,6 @@ class SPT3G_2018_TTTEEE_Ini_Foregrounds(HasLogger):
 
     # This is how the data spectra are calibrated
     calibration = 0.5*(cal1*cal2+cal3*cal4)
-
     return calibration
 
   # Add Poisson power, referenced at ell=3000
