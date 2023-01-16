@@ -36,7 +36,7 @@ default_spectra_list = [
 class SPT3GPrototype(InstallableLikelihood):
     install_options = {
         "download_url": "https://pole.uchicago.edu/public/data/dutcher21/SPT3G_2018_EETE_likelihood_v3.zip",
-        "data_path": "spt3g_2018",
+        "data_path": "spt3g_2018/EETE",
     }
 
     bibtex_file = "spt3g.bibtex"
@@ -59,7 +59,9 @@ class SPT3GPrototype(InstallableLikelihood):
     # SPT-3G Y1 EE/TE Effective band centres for polarised galactic dust.
     nu_eff_list: Optional[dict] = {90: 9.670270e01, 150: 1.499942e02, 220: 2.220433e02}
 
-    data_folder: Optional[str] = "spt3g_2018/SPT3G_2018_EETE_likelihood_v3/data/SPT3G_Y1_EETE"
+    data_folder: Optional[str] = os.path.join(
+        install_options.get("data_path"), "SPT3G_2018_EETE_likelihood_v3/data/SPT3G_Y1_EETE"
+    )
     bp_file: Optional[str]
     cov_file: Optional[str]
     beam_cov_file: Optional[str]

@@ -45,7 +45,7 @@ default_spectra_list = [
 class SPT3GPrototype(InstallableLikelihood):
     install_options = {
         "download_url": "https://pole.uchicago.edu/public/data/balkenhol22/SPT3G_2018_TTTEEE_public_likelihood.zip",
-        "data_path": "spt3g_2018",
+        "data_path": "spt3g_2018/TTTEEE",
     }
 
     bibtex_file = "spt3g_2022.bibtex"
@@ -61,9 +61,13 @@ class SPT3GPrototype(InstallableLikelihood):
     # fmt: off
     spec_bin_min: Optional[Sequence[int]] = [10,  1,  1, 10,  1,  1, 10,  1,  1, 10,  1,  1, 15,  1,  1, 15,  1,  1]
     spec_bin_max: Optional[Sequence[int]] = [44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44, 44]
-
-    data_folder: Optional[str] = "spt3g_2018/SPT3G_2018_TTTEEE_public_likelihood/data/SPT3G_2018_TTTEEE"
     # fmt: on
+
+    data_folder: Optional[str] = os.path.join(
+        install_options.get("data_path"),
+        "SPT3G_2018_TTTEEE_public_likelihood/data/SPT3G_2018_TTTEEE",
+    )
+
     bandpower_filename: Optional[str]
     covariance_filename: Optional[str]
     fiducial_covariance_filename: Optional[str]
