@@ -15,7 +15,7 @@ setup(
     ],
     package_data={
         f"{lkl}": ["*.yaml", "*.bibtex", "tests/*.py", "tests/data/*.npy"]
-        for lkl in ["sptpol_2017", "spt_hiell_2020", "spt3g_2020"]
+        for lkl in ["sptpol_2017", "spt_hiell_2020", "spt3g_2020", "spt3g_2022"]
     },
     scripts=["scripts/test-spt"],
 )

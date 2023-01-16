@@ -18,8 +18,10 @@ The package includes the following likelihoods:
 
 - ``spt3g_2020`` relates to SPT3G EETE likelihood used in `Dutcher et al. <https://arxiv.org/abs/2101.01684>`_, 2021. The original ``Fortran`` code is available `here <https://pole.uchicago.edu/public/data/dutcher21/#Likelihood>`_.
 
+- ``spt3g_2022`` relates to SPT3G TT, TE and EE likelihood used in `Balkenhol et al. <https://arxiv.org/abs/2212.05642>`_, 2022. The original ``Fortran`` code is available `here <https://pole.uchicago.edu/public/data/balkenhol22/#Likelihood>`_.
+
 .. image:: https://user-images.githubusercontent.com/2495611/116709098-a3b87a80-a9d0-11eb-9d18-3d7e63c76680.png
-   
+
 Installing the code
 -------------------
 

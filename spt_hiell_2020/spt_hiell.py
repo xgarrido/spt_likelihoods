@@ -202,10 +202,24 @@ class SPTHiellLikelihood(InstallableLikelihood):
 
         # Loop on nband
         cbs = np.zeros(self.nall)
+#        dlfg = []
         for i in range(self.nband):
             j, k = self.indices[i]
             thisoffset = self.offsets[i]
             thisbin = self.nbins[i]
+
+            #write fgs
+#            dlfg.append( self.fg.dl_foregrounds(
+#                params,
+#                j,
+#                k,
+#                self.nfreq,
+#                self.spt_eff_fr + FTSfactor,
+#                self.spt_norm_fr,
+#                self.spt_windows_lmin,
+#                self.spt_windows_lmax,
+#                components=True
+#            ))
 
             # get theory spectra
             dl_fg = self.fg.dl_foregrounds(
@@ -227,6 +241,8 @@ class SPTHiellLikelihood(InstallableLikelihood):
             tmpcb = tmpcb * self.spt_prefactor[k] * self.spt_prefactor[j] * CalFactors[j] * CalFactors[k]
 
             cbs[thisoffset : thisoffset + thisbin] = tmpcb
+
+#        np.save( "spt_fgs", np.array(dlfg).transpose(1,0,2))
 
         # Residuals
         delta_cb = cbs - self.spec
