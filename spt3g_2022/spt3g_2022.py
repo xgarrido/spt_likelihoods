@@ -44,7 +44,7 @@ default_spectra_list = [
 
 class SPT3GPrototype(InstallableLikelihood):
     install_options = {
-        "download_url": "https://pole.uchicago.edu/public/data/balkenhol22/SPT3G_2018_TTTEEE_public_likelihood.zip",
+        "download_url": "https://pole.uchicago.edu/public/data/balkenhol22/SPT3G_2018_TTTEEE_public_likelihood.v1.1.tar.gz",
         "data_path": "spt3g_2018/TTTEEE",
     }
 
