@@ -14,13 +14,16 @@ The package includes the following likelihoods:
 
 - ``sptpol_2017`` relates to SPTPol EETE likelihood used in `Henning et al. <https://arxiv.org/abs/1707.09353>`_, 2017. The original ``Fortran`` code is available `here <https://pole.uchicago.edu/public/data/henning17/>`_ or in `LAMBDA <https://lambda.gsfc.nasa.gov/product/spt/sptpol_lh_2017_get.cfm>`_.
 
+- ``spt3g_2020`` relates to SPT3G EETE likelihood used in `Dutcher et al. <https://arxiv.org/abs/2101.01684>`_, 2021. The original ``Fortran`` code is available `here <https://pole.uchicago.edu/public/data/dutcher21/#Likelihood>`_.
+
+.. image:: https://user-images.githubusercontent.com/2495611/212894449-75255465-f4f6-42e5-a8b6-b4b03bb246d6.png
+
 - ``spt_hiell_2020`` relates to SPT-SZ TT likelihood used in `Reichardt et al. <https://arxiv.org/abs/2002.06197>`_, 2020. The original ``Fortran`` code is available in `LAMBDA <https://lambda.gsfc.nasa.gov/product/spt/spt_ps_2020_get.cfm>`_.
 
-- ``spt3g_2020`` relates to SPT3G EETE likelihood used in `Dutcher et al. <https://arxiv.org/abs/2101.01684>`_, 2021. The original ``Fortran`` code is available `here <https://pole.uchicago.edu/public/data/dutcher21/#Likelihood>`_.
+.. image:: https://user-images.githubusercontent.com/2495611/212894382-d114c2ca-2659-47ee-ab56-ce66f8a81b1f.png
 
 - ``spt3g_2022`` relates to SPT3G TT, TE and EE likelihood used in `Balkenhol et al. <https://arxiv.org/abs/2212.05642>`_, 2022. The original ``Fortran`` code is available `here <https://pole.uchicago.edu/public/data/balkenhol22/#Likelihood>`_.
 
-.. image:: https://user-images.githubusercontent.com/2495611/116709098-a3b87a80-a9d0-11eb-9d18-3d7e63c76680.png
 
 Installing the code
 -------------------
