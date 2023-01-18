@@ -211,11 +211,11 @@ class SPT3GPrototype(InstallableLikelihood):
         # The order of the cal covariance is T90, T150, T220, E90, E150, E220
         calib_cov = np.loadtxt(os.path.join(self.data_folder, self.cal_covariance_filename))
         cal_indices = np.array([[90.0, 150.0, 220.0].index(freq) for freq in self.frequencies])
-        if "TE" not in self.cross_spectra:
-            # Only polar calibrations shift by 3
-            cal_indices += 3
-        else:
+        if "TE" in self.cross_spectra:
             cal_indices = np.concatenate([cal_indices, cal_indices + 3])
+        elif "TT" not in self.cross_spectra:
+            # Only polar calibrations shift by 3
+            cal_indices = cal_indices + 3
         calib_cov = calib_cov[np.ix_(cal_indices, cal_indices)]
         self.inv_calib_cov = np.linalg.inv(calib_cov)
         self.calib_params = np.array(
@@ -233,7 +233,7 @@ class SPT3GPrototype(InstallableLikelihood):
         self.nu_eff_tSZ = dict(zip(["90", "150", "220"], nu_eff[4]))
 
         self.lmin = self.windows_lmin
-        self.lmax = self.windows_lmax + 1  # to match fortran convention
+        self.lmax = self.windows_lmax
 
         # Initialise foreground model
         self.fg = spt3g_fg.SPT3G_2018_TTTEEE_Ini_Foregrounds(
@@ -308,7 +308,7 @@ class SPT3GPrototype(InstallableLikelihood):
 
     def loglike(self, dl_cmb, **params):
 
-        ells = np.arange(self.lmin, self.lmax)
+        ells = np.arange(self.lmin, self.lmax+1)
         fg = self.fg
 
         db_model = np.empty_like(self.bandpowers)
@@ -424,6 +424,7 @@ class SPT3GPrototype(InstallableLikelihood):
 
             # Binning via window and concatenate
             db_model[i] = self.windows[:, i, :] @ dl_model
+#            print( cross_frequency, db_model[i])
 
         # Select bins and calculate difference of theory and data
         self.log.debug("Compute residuals")
