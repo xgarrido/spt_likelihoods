@@ -76,67 +76,6 @@ params:
     proposal: 0.01
     latex: T_{\rm{cal}^{220}}
 
-  Ecal90:
-    value: 1.0009
-    latex: P_{\rm{cal}^{90}}
-
-  Ecal150:
-    value: 1.0020
-    latex: P_{\rm{cal}^{150}}
-
-  Ecal220:
-    value: 1.019
-    latex: P_{\rm{cal}^{220}}
-
-  EE_Poisson_90x90:
-    value: 0.041
-    latex: D_{3000}^{\rm{PS,EE};90x90}
-
-  EE_Poisson_90x150:
-    value: 0.0177
-    latex: D_{3000}^{\rm{PS,EE};90x150}
-
-  EE_Poisson_90x220:
-    value: 0.0157
-    latex: D_{3000}^{\rm{PS,EE};90x220}
-
-  EE_Poisson_150x150:
-    value: 0.115
-    latex: D_{3000}^{\rm{PS,EE};150x150}
-
-  EE_Poisson_150x220:
-    value: 0.0188
-    latex: D_{3000}^{\rm{PS,EE};150x220}
-
-  EE_Poisson_220x220:
-    value: 0.048
-    latex: D_{3000}^{\rm{PS,EE};220x220}
-
-  EE_PolGalDust_Amp:
-    value: 0.052
-    latex: A_{80}^{\rm{EE}}
-
-  EE_PolGalDust_Alpha:
-    value: -2.42
-    latex: \alpha^{\rm{EE}}
-
-  EE_PolGalDust_Beta:
-    value: 1.51
-    latex: \beta^{\rm{EE}}
-
-
-  TE_PolGalDust_Amp:
-    value: 0.138
-    latex: A_{80}^{\rm{TE}}
-
-  TE_PolGalDust_Alpha:
-    value: -2.42
-    latex: \alpha^{\rm{TE}}
-
-  TE_PolGalDust_Beta:
-    value: 1.51
-    latex: \beta^{\rm{TE}}
-
   TT_Poisson_90x90:
     prior:
       dist: norm
