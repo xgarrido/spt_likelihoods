@@ -1,0 +1,23 @@
+Tcal90:
+  prior:
+    min: 0.9
+    max: 1.1
+  ref: 1.0
+  proposal: 0.01
+  latex: T_{\rm{cal}}^{95 \rm{GHz}}
+
+Tcal150:
+  prior:
+    min: 0.9
+    max: 1.1
+  ref: 1.0
+  proposal: 0.01
+  latex: T_{\rm{cal}}^{150 \rm{GHz}}
+
+Tcal220:
+  prior:
+    min: 0.9
+    max: 1.1
+  ref: 1.0
+  proposal: 0.01
+  latex: T_{\rm{cal}}^{220 \rm{GHz}}

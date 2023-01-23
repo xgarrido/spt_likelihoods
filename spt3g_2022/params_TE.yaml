@@ -1,0 +1,26 @@
+TE_PolGalDust_Amp:
+  prior:
+    dist: norm
+    loc: 0.120
+    scale: 0.051
+  ref: 0.12
+  proposal: 0.051
+  latex: A_{80}^{\rm{TE}}
+
+TE_PolGalDust_Alpha:
+  prior:
+    dist: norm
+    loc: -2.42
+    scale: 0.04
+  ref: -2.42
+  proposal: 0.04
+  latex: \alpha_{\rm{TE}}
+
+TE_PolGalDust_Beta:
+  prior:
+    dist: norm
+    loc: 1.51
+    scale: 0.04
+  ref: 1.51
+  proposal: 0.04
+  latex: \beta_{\rm{TE}}
