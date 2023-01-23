@@ -176,14 +176,15 @@ class SPT3G_2018_TTTEEE_Ini_Foregrounds(HasLogger):
 
         # Calculate tSZ-CIB correlation
         # Sign defined such that a positive xi corresponds to a reduction at 150GHz
-        Dl_tSZ_CIB_corr = (
-            -1
-            * xi_tsz_CIB
-            * (
-                np.sqrt(Dl_tSZ_11 * Dl_cib_clustering_22)
-                + np.sqrt(Dl_tSZ_22 * Dl_cib_clustering_11)
+        with np.errstate(invalid="ignore"):
+            Dl_tSZ_CIB_corr = (
+                -1
+                * xi_tsz_CIB
+                * (
+                    np.sqrt(Dl_tSZ_11 * Dl_cib_clustering_22)
+                    + np.sqrt(Dl_tSZ_22 * Dl_cib_clustering_11)
+                )
             )
-        )
 
         return Dl_tSZ_CIB_corr
 
