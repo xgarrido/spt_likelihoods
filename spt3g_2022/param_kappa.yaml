@@ -1,0 +1,9 @@
+# Super-sampling lensing convergence parameter
+kappa:
+  prior:
+    dist: norm
+    loc: 0.0
+    scale: 0.00045
+  ref: 0.0
+  proposal: 0.00045
+  latex: \kappa
