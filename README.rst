@@ -24,6 +24,7 @@ The package includes the following likelihoods:
 
 - ``spt3g_2022`` relates to SPT3G TT, TE and EE likelihood used in `Balkenhol et al. <https://arxiv.org/abs/2212.05642>`_, 2022. The original ``Fortran`` code is available `here <https://pole.uchicago.edu/public/data/balkenhol22/#Likelihood>`_.
 
+.. image:: https://user-images.githubusercontent.com/2495611/214127005-aa514efa-4b73-43f7-a5ad-8274ffe151d9.png
 
 Installing the code
 -------------------
