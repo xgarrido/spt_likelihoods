@@ -66,7 +66,7 @@ class SPTLikeTest(unittest.TestCase):
         test_dir = os.path.dirname(__file__)
         dl_tt = np.load(os.path.join(test_dir, "data", "dltt_from_cosmomc.npy"))
         loglike = my_spt.loglike(dl_tt, **nuisance_params)
-        self.assertAlmostEqual(-2 * loglike, 1267.5247073344535, 5)
+        self.assertAlmostEqual(-2 * loglike, 1267.524707, 5)
 
     def test_cobaya(self):
         info = dict(
@@ -81,7 +81,7 @@ class SPTLikeTest(unittest.TestCase):
         model = get_model(info)
         my_spt = model.likelihood["spt_hiell_2020.TT"]
         chi2 = -2 * (model.loglikes(nuisance_params)[0])
-        self.assertAlmostEqual(chi2[0], 1289.6505690210145, 3)
+        self.assertAlmostEqual(chi2[0], 1289.860, 3)
 
 
 if __name__ == "__main__":

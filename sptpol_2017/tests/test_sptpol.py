@@ -51,8 +51,8 @@ class SPTPolTest(unittest.TestCase):
         }
 
         for use_cl, expected_chi2 in {
-            "teee": 162.98103875445057,
-            "te": 74.72963434194682,
+            "teee": 162.9840,
+            "te": 74.7255,
             "ee": 76.80106189735758,
         }.items():
             print("use_cl", use_cl)

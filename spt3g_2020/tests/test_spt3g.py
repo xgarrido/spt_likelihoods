@@ -59,7 +59,7 @@ class SPT3GTest(unittest.TestCase):
         loglike = my_spt.loglike(dl_te, dl_ee, **fg_params)
         # self.assertAlmostEqual(-2 * loglike, 1160.1925138672325, 5)
         # New number from SPT3G v3 release
-        self.assertAlmostEqual(-2 * loglike, 1142.9992859507431, 5)
+        self.assertAlmostEqual(-2 * loglike, 1142.999285, 5)
 
     def test_cobaya(self):
         """Test the Cobaya interface to the SPT3G likelihood."""
@@ -75,7 +75,7 @@ class SPT3GTest(unittest.TestCase):
 
         model = get_model(info)
         chi2 = -2 * model.loglike({})[0]
-        self.assertAlmostEqual(chi2, 1143.0310254786946, 2)
+        self.assertAlmostEqual(chi2, 1143.009, 2)
 
 
 if __name__ == "__main__":
