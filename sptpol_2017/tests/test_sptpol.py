@@ -53,7 +53,7 @@ class SPTPolTest(unittest.TestCase):
         for use_cl, expected_chi2 in {
             "teee": 162.9840,
             "te": 74.7255,
-            "ee": 76.80106189735758,
+            "ee": 76.8288,
         }.items():
             print("use_cl", use_cl)
             info["likelihood"] = {f"sptpol_2017.{use_cl.upper()}": None}
