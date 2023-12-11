@@ -284,7 +284,7 @@ class SPTHiellLikelihood(InstallableLikelihood):
         return requirements
 
     def logp(self, **params_values):
-        dl = self.theory.get_Cl(units="muK2", ell_factor=True)["tt"]
+        dl = self.provider.get_Cl(units="muK2", ell_factor=True)["tt"]
         return self.loglike(dl, **params_values)
 
 
