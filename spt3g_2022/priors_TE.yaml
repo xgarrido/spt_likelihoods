@@ -1,0 +1,5 @@
+gaussian_TE_PolGalDust_Amp: 'lambda TE_PolGalDust_Amp: stats.norm.logpdf(TE_PolGalDust_Amp, loc=0.120, scale=0.051)'
+
+gaussian_TE_PolGalDust_Alpha: 'lambda TE_PolGalDust_Alpha: stats.norm.logpdf(TE_PolGalDust_Alpha, loc=-2.42, scale=0.04)'
+
+gaussian_TE_PolGalDust_Beta: 'lambda TE_PolGalDust_Beta: stats.norm.logpdf(TE_PolGalDust_Beta, loc=1.51, scale=0.04)'

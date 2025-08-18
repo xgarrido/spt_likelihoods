@@ -40,3 +40,4 @@ foregrounds:
   tSZ_nu0: 143.0
 
 params: !defaults [param_kappa, params_calib_pol, params_EE]
+prior: !defaults [priors_EE]

@@ -1,0 +1,18 @@
+gaussian_EE_Poisson_90x90: 'lambda EE_Poisson_90x90: stats.norm.logpdf(EE_Poisson_90x90, loc=0.040469, scale=0.012141)'
+
+gaussian_EE_Poisson_90x150: 'lambda EE_Poisson_90x150: stats.norm.logpdf(EE_Poisson_90x150, loc=0.018048, scale=0.005414)'
+
+gaussian_EE_Poisson_90x220: 'lambda EE_Poisson_90x220: stats.norm.logpdf(EE_Poisson_90x220, loc=0.015719, scale=0.004716)'
+
+gaussian_EE_Poisson_150x150: 'lambda EE_Poisson_150x150: stats.norm.logpdf(EE_Poisson_150x150, loc=0.011495, scale=0.003448)'
+
+gaussian_EE_Poisson_150x220: 'lambda EE_Poisson_150x220: stats.norm.logpdf(EE_Poisson_150x220, loc=0.018962, scale=0.005689)'
+
+gaussian_EE_Poisson_220x220: 'lambda EE_Poisson_220x220: stats.norm.logpdf(EE_Poisson_220x220, loc=0.047557, scale=0.014267)'
+
+gaussian_EE_PolGalDust_Amp: 'lambda EE_PolGalDust_Amp: stats.norm.logpdf(EE_PolGalDust_Amp, loc=0.05, scale=0.022)'
+
+gaussian_EE_PolGalDust_Alpha: 'lambda EE_PolGalDust_Alpha: stats.norm.logpdf(EE_PolGalDust_Alpha, loc=-2.42, scale=0.04)'
+
+gaussian_EE_PolGalDust_Beta: 'lambda EE_PolGalDust_Beta: stats.norm.logpdf(EE_PolGalDust_Beta, loc=1.51, scale=0.04)'
+
