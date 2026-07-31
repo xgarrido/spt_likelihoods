@@ -7,6 +7,7 @@ https://lambda.gsfc.nasa.gov/product/spt/spt_ps_2020_get.cfm
 :Author: Matthieu Tristram
 
 """
+
 import os
 from typing import Optional, Sequence
 
@@ -24,11 +25,13 @@ class SPTHiellLikelihood(InstallableLikelihood):
         "data_path": "spt_hiell_2020",
     }
 
-    cal_cov = [
-        [1.1105131e-05, 3.5551351e-06, 1.1602891e-06],
-        [3.5551351e-06, 3.4153547e-06, 2.1348018e-06],
-        [1.1602891e-06, 2.1348018e-06, 1.7536000e-05],
-    ]
+    cal_cov = np.array(
+        [
+            [1.1105131e-05, 3.5551351e-06, 1.1602891e-06],
+            [3.5551351e-06, 3.4153547e-06, 2.1348018e-06],
+            [1.1602891e-06, 2.1348018e-06, 1.7536000e-05],
+        ]
+    )
 
     frequencies: Sequence[int] = [95, 150, 220]
 
@@ -202,24 +205,24 @@ class SPTHiellLikelihood(InstallableLikelihood):
 
         # Loop on nband
         cbs = np.zeros(self.nall)
-#        dlfg = []
+        #        dlfg = []
         for i in range(self.nband):
             j, k = self.indices[i]
             thisoffset = self.offsets[i]
             thisbin = self.nbins[i]
 
-            #write fgs
-#            dlfg.append( self.fg.dl_foregrounds(
-#                params,
-#                j,
-#                k,
-#                self.nfreq,
-#                self.spt_eff_fr + FTSfactor,
-#                self.spt_norm_fr,
-#                self.spt_windows_lmin,
-#                self.spt_windows_lmax,
-#                components=True
-#            ))
+            # write fgs
+            #            dlfg.append( self.fg.dl_foregrounds(
+            #                params,
+            #                j,
+            #                k,
+            #                self.nfreq,
+            #                self.spt_eff_fr + FTSfactor,
+            #                self.spt_norm_fr,
+            #                self.spt_windows_lmin,
+            #                self.spt_windows_lmax,
+            #                components=True
+            #            ))
 
             # get theory spectra
             dl_fg = self.fg.dl_foregrounds(
@@ -230,19 +233,25 @@ class SPTHiellLikelihood(InstallableLikelihood):
                 self.spt_eff_fr + FTSfactor,
                 self.spt_norm_fr,
                 self.spt_windows_lmin,
-                self.spt_windows_lmax
+                self.spt_windows_lmax,
             )
             dl_th = dl_cmb[self.lmin : self.lmax] + dl_fg[self.lmin : self.lmax]
 
             # bin theory with window functions
-            tmpcb = self.windows[thisoffset:thisoffset+thisbin] @ dl_th
+            tmpcb = self.windows[thisoffset : thisoffset + thisbin] @ dl_th
 
             # apply prefactors
-            tmpcb = tmpcb * self.spt_prefactor[k] * self.spt_prefactor[j] * CalFactors[j] * CalFactors[k]
+            tmpcb = (
+                tmpcb
+                * self.spt_prefactor[k]
+                * self.spt_prefactor[j]
+                * CalFactors[j]
+                * CalFactors[k]
+            )
 
             cbs[thisoffset : thisoffset + thisbin] = tmpcb
 
-#        np.save( "spt_fgs", np.array(dlfg).transpose(1,0,2))
+        #        np.save( "spt_fgs", np.array(dlfg).transpose(1,0,2))
 
         # Residuals
         delta_cb = cbs - self.spec

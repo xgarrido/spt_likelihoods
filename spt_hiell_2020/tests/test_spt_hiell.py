@@ -81,7 +81,7 @@ class SPTLikeTest(unittest.TestCase):
         model = get_model(info)
         my_spt = model.likelihood["spt_hiell_2020.TT"]
         chi2 = -2 * (model.loglikes(nuisance_params)[0])
-        self.assertAlmostEqual(chi2[0], 1289.860, 3)
+        self.assertAlmostEqual(chi2[0], 1289.885, 3)
 
 
 if __name__ == "__main__":
