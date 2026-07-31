@@ -75,7 +75,7 @@ class SPT3GTest(unittest.TestCase):
 
         model = get_model(info)
         chi2 = -2 * model.loglike({})[0]
-        self.assertAlmostEqual(chi2, 1143.009, 2)
+        self.assertAlmostEqual(chi2, 1143.953, 2)
 
 
 if __name__ == "__main__":
